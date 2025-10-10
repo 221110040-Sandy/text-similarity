@@ -1,0 +1,22 @@
+# FastAPI Backend
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+pydantic==2.5.0
+
+# Deep Learning
+tensorflow==2.15.0
+tf-keras==2.15.0
+transformers==4.35.0
+
+# NLP & ML
+scikit-learn==1.3.2
+pandas==2.1.3
+numpy==1.24.3
+
+# Streamlit Frontend
+streamlit==1.28.1
+plotly==5.18.0
+requests==2.31.0
+
+# Optional but recommended
+python-multipart==0.0.6
