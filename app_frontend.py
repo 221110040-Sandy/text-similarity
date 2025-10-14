@@ -7,6 +7,14 @@ import time
 import re
 from typing import Dict, Optional
 
+# PDF processing imports
+try:
+    import PyPDF2
+    import pdfplumber
+    PDF_SUPPORT = True
+except ImportError:
+    PDF_SUPPORT = False
+
 # Set page config
 st.set_page_config(
     page_title="📝 Advanced Text Similarity Analyzer",
@@ -111,6 +119,56 @@ def get_text_statistics(text):
         'complexity_score': round(complexity_score, 1),
         'avg_words_per_sentence': round(avg_words_per_sentence, 1)
     }
+
+# PDF Processing Functions
+def extract_text_from_pdf(pdf_file):
+    """Extract text from PDF file using multiple methods."""
+    if not PDF_SUPPORT:
+        return None, "📦 PDF support tidak tersedia. Install PyPDF2 dan pdfplumber terlebih dahulu."
+    
+    try:
+        # Method 1: Try pdfplumber first (better for complex layouts)
+        text = ""
+        with pdfplumber.open(pdf_file) as pdf:
+            for page in pdf.pages:
+                page_text = page.extract_text()
+                if page_text:
+                    text += page_text + "\n"
+        
+        if text.strip():
+            return text.strip(), None
+            
+        # Method 2: Fallback to PyPDF2
+        pdf_file.seek(0)  # Reset file pointer
+        pdf_reader = PyPDF2.PdfReader(pdf_file)
+        text = ""
+        for page in pdf_reader.pages:
+            text += page.extract_text() + "\n"
+            
+        if text.strip():
+            return text.strip(), None
+        else:
+            return None, "❌ Tidak bisa extract teks dari PDF. File mungkin berupa gambar atau rusak."
+            
+    except Exception as e:
+        return None, f"❌ Error memproses PDF: {str(e)}"
+
+def create_pdf_preview(text, max_chars=500):
+    """Create a preview of PDF content."""
+    if len(text) <= max_chars:
+        return text
+    return text[:max_chars] + "..."
+
+def validate_pdf_file(uploaded_file):
+    """Validate if uploaded file is a valid PDF."""
+    if uploaded_file.type != "application/pdf":
+        return False, "❌ File harus berformat PDF"
+    
+    # Check file size (max 10MB)
+    if uploaded_file.size > 10 * 1024 * 1024:
+        return False, "❌ File PDF terlalu besar! Maksimal 10MB"
+    
+    return True, "✅ File PDF valid"
 
 # API Communication Functions
 @st.cache_data(ttl=60)  # Cache for 1 minute
@@ -378,7 +436,6 @@ if analysis_type == "📄 Text Similarity":
                     
                     # Add to performance history
                     st.session_state.performance_history.append({
-                        'engine': 'neural',
                         'processing_time': processing_time,
                         'similarity': similarity
                     })
@@ -399,7 +456,7 @@ if analysis_type == "📄 Text Similarity":
                             status = "Trained" if result['weights_loaded'] else "Untrained"
                             st.metric("Model Status", status)
                         else:
-                            st.metric("Engine", "Neural")
+                            st.metric("Model", "Neural")
                     
                     # Main visualization
                     col1, col2, col3 = st.columns([1, 2, 1])
@@ -463,45 +520,115 @@ if analysis_type == "📄 Text Similarity":
 
 elif analysis_type == "📁 Document Similarity":
     st.markdown("## 📁 Document Similarity Analysis")
-    st.info("🔧 Upload tepat 2 dokumen untuk dibandingkan (maksimal 5 halaman per dokumen)")
+    
+    if not PDF_SUPPORT:
+        st.warning("📦 **PDF support tidak tersedia.** Install PyPDF2 dan pdfplumber untuk support PDF.")
+        st.info("🔧 Upload tepat 2 dokumen TXT untuk dibandingkan (maksimal 5 halaman per dokumen)")
+    else:
+        st.info("🔧 Upload tepat 2 dokumen (PDF atau TXT) untuk dibandingkan (maksimal 5 halaman per dokumen)")
     
     col1, col2 = st.columns(2)
     
     with col1:
         st.markdown("### 📄 Dokumen 1")
-        uploaded_file1 = st.file_uploader("Upload dokumen pertama (.txt)", type="txt", key="file1")
+        file_types = ["txt", "pdf"] if PDF_SUPPORT else ["txt"]
+        uploaded_file1 = st.file_uploader(
+            f"Upload dokumen pertama ({', '.join(file_types).upper()})", 
+            type=file_types, 
+            key="file1"
+        )
         doc1_content = ""
         
         if uploaded_file1:
-            doc1_content = uploaded_file1.read().decode("utf-8")
-            is_valid1, msg1 = validate_document_length(doc1_content)
-            
-            if is_valid1:
-                st.success(msg1)
-                with st.expander("👁️ Preview Dokumen 1"):
-                    st.text_area("Content:", doc1_content[:500] + "..." if len(doc1_content) > 500 else doc1_content, 
-                               height=150, disabled=True)
+            if uploaded_file1.type == "application/pdf":
+                if PDF_SUPPORT:
+                    is_valid_pdf, pdf_msg = validate_pdf_file(uploaded_file1)
+                    if is_valid_pdf:
+                        with st.spinner("📖 Mengekstrak teks dari PDF..."):
+                            text, error = extract_text_from_pdf(uploaded_file1)
+                        if error:
+                            st.error(error)
+                        else:
+                            doc1_content = text
+                            is_valid1, msg1 = validate_document_length(doc1_content)
+                            
+                            if is_valid1:
+                                st.success("✅ PDF berhasil diproses!")
+                                st.success(msg1)
+                                with st.expander("👁️ Preview Dokumen 1 (dari PDF)"):
+                                    st.text_area("Content:", create_pdf_preview(doc1_content), 
+                                               height=150, disabled=True, key="preview1")
+                            else:
+                                st.error(msg1)
+                                doc1_content = ""
+                    else:
+                        st.error(pdf_msg)
+                else:
+                    st.error("❌ PDF support tidak tersedia")
             else:
-                st.error(msg1)
-                doc1_content = ""
+                # TXT file
+                doc1_content = uploaded_file1.read().decode("utf-8")
+                is_valid1, msg1 = validate_document_length(doc1_content)
+                
+                if is_valid1:
+                    st.success("✅ File TXT berhasil dimuat!")
+                    st.success(msg1)
+                    with st.expander("👁️ Preview Dokumen 1"):
+                        st.text_area("Content:", doc1_content[:500] + "..." if len(doc1_content) > 500 else doc1_content, 
+                                   height=150, disabled=True, key="preview1_txt")
+                else:
+                    st.error(msg1)
+                    doc1_content = ""
     
     with col2:
         st.markdown("### 📄 Dokumen 2")
-        uploaded_file2 = st.file_uploader("Upload dokumen kedua (.txt)", type="txt", key="file2")
+        uploaded_file2 = st.file_uploader(
+            f"Upload dokumen kedua ({', '.join(file_types).upper()})", 
+            type=file_types, 
+            key="file2"
+        )
         doc2_content = ""
         
         if uploaded_file2:
-            doc2_content = uploaded_file2.read().decode("utf-8")
-            is_valid2, msg2 = validate_document_length(doc2_content)
-            
-            if is_valid2:
-                st.success(msg2)
-                with st.expander("👁️ Preview Dokumen 2"):
-                    st.text_area("Content:", doc2_content[:500] + "..." if len(doc2_content) > 500 else doc2_content, 
-                               height=150, disabled=True)
+            if uploaded_file2.type == "application/pdf":
+                if PDF_SUPPORT:
+                    is_valid_pdf, pdf_msg = validate_pdf_file(uploaded_file2)
+                    if is_valid_pdf:
+                        with st.spinner("📖 Mengekstrak teks dari PDF..."):
+                            text, error = extract_text_from_pdf(uploaded_file2)
+                        if error:
+                            st.error(error)
+                        else:
+                            doc2_content = text
+                            is_valid2, msg2 = validate_document_length(doc2_content)
+                            
+                            if is_valid2:
+                                st.success("✅ PDF berhasil diproses!")
+                                st.success(msg2)
+                                with st.expander("👁️ Preview Dokumen 2 (dari PDF)"):
+                                    st.text_area("Content:", create_pdf_preview(doc2_content), 
+                                               height=150, disabled=True, key="preview2")
+                            else:
+                                st.error(msg2)
+                                doc2_content = ""
+                    else:
+                        st.error(pdf_msg)
+                else:
+                    st.error("❌ PDF support tidak tersedia")
             else:
-                st.error(msg2)
-                doc2_content = ""
+                # TXT file
+                doc2_content = uploaded_file2.read().decode("utf-8")
+                is_valid2, msg2 = validate_document_length(doc2_content)
+                
+                if is_valid2:
+                    st.success("✅ File TXT berhasil dimuat!")
+                    st.success(msg2)
+                    with st.expander("👁️ Preview Dokumen 2"):
+                        st.text_area("Content:", doc2_content[:500] + "..." if len(doc2_content) > 500 else doc2_content, 
+                                   height=150, disabled=True, key="preview2_txt")
+                else:
+                    st.error(msg2)
+                    doc2_content = ""
     
     # Analysis button
     if st.button("🧠 Bandingkan Dokumen dengan Neural Model", type="primary", disabled=not (api_connected and api_health["model_loaded"]), use_container_width=True):
@@ -576,16 +703,15 @@ if st.session_state.performance_history:
         df_perf = pd.DataFrame(st.session_state.performance_history)
         st.markdown("### Performance Summary:")
         
-        if 'neural' in df_perf['engine'].values:
-            neural_data = df_perf[df_perf['engine'] == 'neural']
-            avg_time = neural_data['processing_time'].mean()
-            avg_similarity = neural_data['similarity'].mean()
+        if len(df_perf) > 0:
+            avg_time = df_perf['processing_time'].mean()
+            avg_similarity = df_perf['similarity'].mean()
             
             summary_cols = st.columns(2)
             with summary_cols[0]:
-                st.metric("Neural Avg Time", f"{avg_time:.3f}s")
+                st.metric("Average Time", f"{avg_time:.3f}s")
             with summary_cols[1]:
-                st.metric("Neural Avg Similarity", f"{avg_similarity:.3f}")
+                st.metric("Average Similarity", f"{avg_similarity:.3f}")
 
 # Architecture info
 with st.expander("🏗️ Architecture & Benefits"):
@@ -623,8 +749,7 @@ with st.expander("📖 API Documentation"):
     ```json
     {
         "text1": "First text to compare",
-        "text2": "Second text to compare", 
-        "engine": "neural"  // neural, tfidf, or hybrid
+        "text2": "Second text to compare"
     }
     ```
     
