@@ -414,7 +414,7 @@ async def lifespan(app: FastAPI):
         print("🚀 FastAPI server ready with loaded model!")
     except Exception as e:
         print(f"⚠️ Failed to load neural model: {e}")
-        print("📝 Server will run with TF-IDF only mode")
+        print("📝 Server cannot run without neural model")
         model_bundle = None
 
     yield
@@ -441,7 +441,6 @@ app.add_middleware(
 class SimilarityRequest(BaseModel):
     text1: str
     text2: str
-    engine: str = "neural"  # neural, tfidf, hybrid
 
 
 class DocumentSimilarityRequest(BaseModel):
@@ -512,70 +511,20 @@ async def health_check():
 
 @app.post("/predict", response_model=SimilarityResponse)
 async def predict_similarity(request: SimilarityRequest):
-    """Prediksi similarity untuk dua teks pendek."""
+    """Prediksi similarity untuk dua teks pendek menggunakan Neural model."""
     start_time = time.time()
     try:
-        if request.engine == "neural":
-            if model_bundle is None:
-                raise HTTPException(status_code=503, detail="Neural model not available")
+        if model_bundle is None:
+            raise HTTPException(status_code=503, detail="Neural model not available")
 
-            sim = predict_neural_similarity(request.text1, request.text2)
-            dt = time.time() - start_time
-            return SimilarityResponse(
-                similarity=sim,
-                processing_time=dt,
-                method="Neural (MiniLM + BiLSTM + Attention)",
-                weights_loaded=model_bundle["weights_loaded"],
-            )
-
-        elif request.engine == "tfidf":
-            from sklearn.feature_extraction.text import TfidfVectorizer
-            from sklearn.metrics.pairwise import cosine_similarity
-
-            t1 = clean_text(request.text1)
-            t2 = clean_text(request.text2)
-            vec = TfidfVectorizer(
-                stop_words="english",
-                max_features=1000,
-                ngram_range=(1, 2),
-                max_df=0.85,
-                min_df=2,
-            )
-            X = vec.fit_transform([t1, t2])
-            sim = float(cosine_similarity(X[0:1], X[1:2])[0][0])
-            dt = time.time() - start_time
-            return SimilarityResponse(similarity=sim, processing_time=dt, method="TF-IDF + Cosine Similarity")
-
-        elif request.engine == "hybrid":
-            if model_bundle is None:
-                raise HTTPException(status_code=503, detail="Neural model required for hybrid mode")
-            from sklearn.feature_extraction.text import TfidfVectorizer
-            from sklearn.metrics.pairwise import cosine_similarity
-
-            t1 = clean_text(request.text1)
-            t2 = clean_text(request.text2)
-            vec = TfidfVectorizer(
-                stop_words="english",
-                max_features=1000,
-                ngram_range=(1, 2),
-                max_df=0.85,
-                min_df=2,
-            )
-            X = vec.fit_transform([t1, t2])
-            tfidf_sim = float(cosine_similarity(X[0:1], X[1:2])[0][0])
-
-            neural_sim = predict_neural_similarity(request.text1, request.text2)
-            sim = 0.4 * tfidf_sim + 0.6 * neural_sim
-            dt = time.time() - start_time
-            return SimilarityResponse(
-                similarity=sim,
-                processing_time=dt,
-                method="Hybrid (40% TF-IDF + 60% Neural)",
-                weights_loaded=model_bundle["weights_loaded"],
-            )
-
-        else:
-            raise HTTPException(status_code=400, detail="Invalid engine. Choose: neural, tfidf, or hybrid")
+        sim = predict_neural_similarity(request.text1, request.text2)
+        dt = time.time() - start_time
+        return SimilarityResponse(
+            similarity=sim,
+            processing_time=dt,
+            method="Neural (MiniLM + BiLSTM + Attention)",
+            weights_loaded=model_bundle["weights_loaded"],
+        )
 
     except HTTPException:
         raise

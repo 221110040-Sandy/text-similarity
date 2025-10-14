@@ -125,13 +125,12 @@ def check_api_health():
     except requests.exceptions.RequestException:
         return {"status": "disconnected", "model_loaded": False}
 
-def predict_similarity_api(text1: str, text2: str, engine: str = "neural"):
-    """Call API for similarity prediction"""
+def predict_similarity_api(text1: str, text2: str):
+    """Call API for similarity prediction menggunakan Neural model"""
     try:
         payload = {
             "text1": text1,
-            "text2": text2,
-            "engine": engine
+            "text2": text2
         }
         
         response = requests.post(
@@ -218,18 +217,13 @@ def create_performance_chart(results_history):
     
     fig = go.Figure()
     
-    engines = df['engine'].unique()
-    colors = {'neural': 'blue', 'tfidf': 'green', 'hybrid': 'purple'}
-    
-    for engine in engines:
-        engine_data = df[df['engine'] == engine]
-        fig.add_trace(go.Scatter(
-            x=engine_data.index,
-            y=engine_data['processing_time'],
-            mode='lines+markers',
-            name=f'{engine.title()} Engine',
-            line=dict(color=colors.get(engine, 'gray'))
-        ))
+    fig.add_trace(go.Scatter(
+        x=df.index,
+        y=df['processing_time'],
+        mode='lines+markers',
+        name='Neural Model',
+        line=dict(color='blue')
+    ))
     
     fig.update_layout(
         title='Processing Time Comparison',
@@ -262,7 +256,7 @@ if api_connected:
     else:
         st.markdown("""
         <div class="api-status api-connected">
-            🟡 <strong>API Connected</strong> | Neural Model NOT Loaded | TF-IDF Only
+            🟡 <strong>API Connected</strong> | Neural Model NOT Loaded
         </div>
         """, unsafe_allow_html=True)
 else:
@@ -280,27 +274,8 @@ analysis_type = st.sidebar.radio(
     index=0
 )
 
-st.sidebar.markdown("## ⚙️ Similarity Engine")
-
-# Engine selection based on API availability
-available_engines = []
-if api_connected:
-    available_engines.append(("TfIdf", "🚀 Super Cepat (~0.01s)"))
-    if api_health["model_loaded"]:
-        available_engines.append(("Neural", "🧠 Your Trained Model (~0.1s)"))
-        available_engines.append(("Hybrid", "🎯 Best Accuracy (~0.2s)"))
-else:
-    st.sidebar.error("❌ API not available - Please start backend first")
-
-if available_engines:
-    selected_engine = st.sidebar.radio(
-        "Pilih engine:",
-        options=[opt[0] for opt in available_engines],
-        format_func=lambda x: next(opt[1] for opt in available_engines if opt[0] == x),
-        index=0
-    )
-else:
-    selected_engine = "TF-IDF"  # Fallback
+st.sidebar.markdown("## 🧠 Neural Model")
+st.sidebar.markdown("**Your Trained Model:** MiniLM + BiLSTM + Attention")
 
 # API Status in Sidebar
 st.sidebar.markdown("---")
@@ -379,9 +354,9 @@ if analysis_type == "📄 Text Similarity":
     col_center = st.columns([1, 2, 1])[1]
     with col_center:
         analyze_button = st.button(
-            f"🚀 Analisis dengan {selected_engine}", 
+            "🧠 Analisis dengan Neural Model", 
             type="primary",
-            disabled=not api_connected,
+            disabled=not (api_connected and api_health["model_loaded"]),
             use_container_width=True
         )
         
@@ -390,8 +365,8 @@ if analysis_type == "📄 Text Similarity":
                 st.error("❌ Mohon masukkan kedua teks yang valid!")
             else:
                 # Show loading
-                with st.spinner(f"🔄 Menganalisis dengan {selected_engine}..."):
-                    result = predict_similarity_api(text1, text2, selected_engine.lower())
+                with st.spinner("🔄 Menganalisis dengan Neural Model..."):
+                    result = predict_similarity_api(text1, text2)
                 
                 err = result.get("error") or result.get("detail")
                 if err:
@@ -403,7 +378,7 @@ if analysis_type == "📄 Text Similarity":
                     
                     # Add to performance history
                     st.session_state.performance_history.append({
-                        'engine': selected_engine.lower(),
+                        'engine': 'neural',
                         'processing_time': processing_time,
                         'similarity': similarity
                     })
@@ -424,7 +399,7 @@ if analysis_type == "📄 Text Similarity":
                             status = "Trained" if result['weights_loaded'] else "Untrained"
                             st.metric("Model Status", status)
                         else:
-                            st.metric("Engine", selected_engine)
+                            st.metric("Engine", "Neural")
                     
                     # Main visualization
                     col1, col2, col3 = st.columns([1, 2, 1])
@@ -529,7 +504,7 @@ elif analysis_type == "📁 Document Similarity":
                 doc2_content = ""
     
     # Analysis button
-    if st.button(f"🔍 Bandingkan Dokumen dengan {selected_engine}", type="primary", disabled=not api_connected, use_container_width=True):
+    if st.button("🧠 Bandingkan Dokumen dengan Neural Model", type="primary", disabled=not (api_connected and api_health["model_loaded"]), use_container_width=True):
         if not doc1_content or not doc2_content:
             st.error("❌ Mohon upload kedua dokumen yang valid!")
         else:
@@ -601,13 +576,16 @@ if st.session_state.performance_history:
         df_perf = pd.DataFrame(st.session_state.performance_history)
         st.markdown("### Performance Summary:")
         
-        summary_cols = st.columns(3)
-        for i, engine in enumerate(['neural', 'tfidf', 'hybrid']):
-            if engine in df_perf['engine'].values:
-                engine_data = df_perf[df_perf['engine'] == engine]
-                avg_time = engine_data['processing_time'].mean()
-                with summary_cols[i % 3]:
-                    st.metric(f"{engine.title()} Avg Time", f"{avg_time:.3f}s")
+        if 'neural' in df_perf['engine'].values:
+            neural_data = df_perf[df_perf['engine'] == 'neural']
+            avg_time = neural_data['processing_time'].mean()
+            avg_similarity = neural_data['similarity'].mean()
+            
+            summary_cols = st.columns(2)
+            with summary_cols[0]:
+                st.metric("Neural Avg Time", f"{avg_time:.3f}s")
+            with summary_cols[1]:
+                st.metric("Neural Avg Similarity", f"{avg_similarity:.3f}")
 
 # Architecture info
 with st.expander("🏗️ Architecture & Benefits"):
