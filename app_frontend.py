@@ -15,6 +15,13 @@ try:
 except ImportError:
     PDF_SUPPORT = False
 
+# DOCX processing imports
+try:
+    from docx import Document
+    DOCX_SUPPORT = True
+except ImportError:
+    DOCX_SUPPORT = False
+
 # Set page config
 st.set_page_config(
     page_title="📝 Advanced Text Similarity Analyzer",
@@ -169,6 +176,62 @@ def validate_pdf_file(uploaded_file):
         return False, "❌ File PDF terlalu besar! Maksimal 10MB"
     
     return True, "✅ File PDF valid"
+
+# DOCX Processing Functions
+def extract_text_from_docx(docx_file):
+    """Extract text from DOCX file."""
+    if not DOCX_SUPPORT:
+        return None, "📦 DOCX support tidak tersedia. Install python-docx terlebih dahulu."
+    
+    try:
+        doc = Document(docx_file)
+        text = ""
+        
+        # Extract text from paragraphs
+        for paragraph in doc.paragraphs:
+            if paragraph.text.strip():
+                text += paragraph.text + "\n"
+        
+        # Extract text from tables
+        for table in doc.tables:
+            for row in table.rows:
+                for cell in row.cells:
+                    if cell.text.strip():
+                        text += cell.text + " "
+                text += "\n"
+        
+        if text.strip():
+            return text.strip(), None
+        else:
+            return None, "❌ Tidak ada teks yang bisa diextract dari DOCX. File mungkin kosong."
+            
+    except Exception as e:
+        return None, f"❌ Error memproses DOCX: {str(e)}"
+
+def create_docx_preview(text, max_chars=500):
+    """Create a preview of DOCX content."""
+    if len(text) <= max_chars:
+        return text
+    return text[:max_chars] + "..."
+
+def validate_docx_file(uploaded_file):
+    """Validate if uploaded file is a valid DOCX."""
+    # Check MIME type
+    valid_types = [
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        "application/msword"
+    ]
+    
+    if uploaded_file.type not in valid_types:
+        # Also check by file extension
+        if not uploaded_file.name.lower().endswith(('.docx', '.doc')):
+            return False, "❌ File harus berformat DOCX atau DOC"
+    
+    # Check file size (max 10MB)
+    if uploaded_file.size > 10 * 1024 * 1024:
+        return False, "❌ File DOCX terlalu besar! Maksimal 10MB"
+    
+    return True, "✅ File DOCX valid"
 
 # API Communication Functions
 @st.cache_data(ttl=60)  # Cache for 1 minute
@@ -521,26 +584,67 @@ if analysis_type == "📄 Text Similarity":
 elif analysis_type == "📁 Document Similarity":
     st.markdown("## 📁 Document Similarity Analysis")
     
-    if not PDF_SUPPORT:
-        st.warning("📦 **PDF support tidak tersedia.** Install PyPDF2 dan pdfplumber untuk support PDF.")
+    # Info message based on available support
+    supported_formats = []
+    if PDF_SUPPORT:
+        supported_formats.append("PDF")
+    if DOCX_SUPPORT:
+        supported_formats.append("DOCX")
+    supported_formats.append("TXT")
+    
+    if not PDF_SUPPORT and not DOCX_SUPPORT:
+        st.warning("📦 **PDF & DOCX support tidak tersedia.** Install PyPDF2, pdfplumber, dan python-docx untuk support lengkap.")
         st.info("🔧 Upload tepat 2 dokumen TXT untuk dibandingkan (maksimal 5 halaman per dokumen)")
     else:
-        st.info("🔧 Upload tepat 2 dokumen (PDF atau TXT) untuk dibandingkan (maksimal 5 halaman per dokumen)")
+        st.info(f"🔧 Upload tepat 2 dokumen ({', '.join(supported_formats)}) untuk dibandingkan (maksimal 5 halaman per dokumen)")
     
     col1, col2 = st.columns(2)
     
     with col1:
         st.markdown("### 📄 Dokumen 1")
-        file_types = ["txt", "pdf"] if PDF_SUPPORT else ["txt"]
+        file_types = ["txt"]
+        if PDF_SUPPORT:
+            file_types.append("pdf")
+        if DOCX_SUPPORT:
+            file_types.extend(["docx", "doc"])
+        
         uploaded_file1 = st.file_uploader(
-            f"Upload dokumen pertama ({', '.join(file_types).upper()})", 
+            f"Upload dokumen pertama ({', '.join([t.upper() for t in file_types])})", 
             type=file_types, 
             key="file1"
         )
         doc1_content = ""
         
         if uploaded_file1:
-            if uploaded_file1.type == "application/pdf":
+            # Handle DOCX files
+            if uploaded_file1.name.lower().endswith(('.docx', '.doc')):
+                if DOCX_SUPPORT:
+                    is_valid_docx, docx_msg = validate_docx_file(uploaded_file1)
+                    if is_valid_docx:
+                        with st.spinner("📖 Mengekstrak teks dari DOCX..."):
+                            text, error = extract_text_from_docx(uploaded_file1)
+                        if error:
+                            st.error(error)
+                        else:
+                            doc1_content = text
+                            is_valid1, msg1 = validate_document_length(doc1_content)
+                            
+                            if is_valid1:
+                                st.success("✅ DOCX berhasil diproses!")
+                                st.success(msg1)
+                                with st.expander("👁️ Preview Dokumen 1 (dari DOCX)"):
+                                    st.text_area("Content:", create_docx_preview(doc1_content), 
+                                               height=150, disabled=True, key="preview1_docx")
+                            else:
+                                st.error(msg1)
+                                doc1_content = ""
+                    else:
+                        st.error(docx_msg)
+                else:
+                    st.error("❌ DOCX support tidak tersedia")
+            
+            # Handle PDF files
+            elif uploaded_file1.type == "application/pdf":
                 if PDF_SUPPORT:
                     is_valid_pdf, pdf_msg = validate_pdf_file(uploaded_file1)
                     if is_valid_pdf:
@@ -565,6 +669,8 @@ elif analysis_type == "📁 Document Similarity":
                         st.error(pdf_msg)
                 else:
                     st.error("❌ PDF support tidak tersedia")
+            
+            # Handle TXT files
             else:
                 # TXT file
                 doc1_content = uploaded_file1.read().decode("utf-8")
@@ -583,14 +689,42 @@ elif analysis_type == "📁 Document Similarity":
     with col2:
         st.markdown("### 📄 Dokumen 2")
         uploaded_file2 = st.file_uploader(
-            f"Upload dokumen kedua ({', '.join(file_types).upper()})", 
+            f"Upload dokumen kedua ({', '.join([t.upper() for t in file_types])})", 
             type=file_types, 
             key="file2"
         )
         doc2_content = ""
         
         if uploaded_file2:
-            if uploaded_file2.type == "application/pdf":
+            # Handle DOCX files
+            if uploaded_file2.name.lower().endswith(('.docx', '.doc')):
+                if DOCX_SUPPORT:
+                    is_valid_docx, docx_msg = validate_docx_file(uploaded_file2)
+                    if is_valid_docx:
+                        with st.spinner("📖 Mengekstrak teks dari DOCX..."):
+                            text, error = extract_text_from_docx(uploaded_file2)
+                        if error:
+                            st.error(error)
+                        else:
+                            doc2_content = text
+                            is_valid2, msg2 = validate_document_length(doc2_content)
+                            
+                            if is_valid2:
+                                st.success("✅ DOCX berhasil diproses!")
+                                st.success(msg2)
+                                with st.expander("👁️ Preview Dokumen 2 (dari DOCX)"):
+                                    st.text_area("Content:", create_docx_preview(doc2_content), 
+                                               height=150, disabled=True, key="preview2_docx")
+                            else:
+                                st.error(msg2)
+                                doc2_content = ""
+                    else:
+                        st.error(docx_msg)
+                else:
+                    st.error("❌ DOCX support tidak tersedia")
+            
+            # Handle PDF files
+            elif uploaded_file2.type == "application/pdf":
                 if PDF_SUPPORT:
                     is_valid_pdf, pdf_msg = validate_pdf_file(uploaded_file2)
                     if is_valid_pdf:
@@ -615,6 +749,8 @@ elif analysis_type == "📁 Document Similarity":
                         st.error(pdf_msg)
                 else:
                     st.error("❌ PDF support tidak tersedia")
+            
+            # Handle TXT files
             else:
                 # TXT file
                 doc2_content = uploaded_file2.read().decode("utf-8")
