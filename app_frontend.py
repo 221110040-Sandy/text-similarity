@@ -90,6 +90,14 @@ st.markdown("""
     
     .api-connected { background: #d4edda; border-left-color: #28a745; color: #155724; }
     .api-disconnected { background: #f8d7da; border-left-color: #dc3545; color: #721c24; }
+            
+    [data-testid="stHeading"] a {
+        display: none !important;
+    }
+            
+    h1 a, h2 a, h3 a, h4 a, h5 a, h6 a {
+        display: none !important;
+    }
 </style>
 """, unsafe_allow_html=True)
 
