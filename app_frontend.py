@@ -24,7 +24,7 @@ except ImportError:
 
 # Set page config
 st.set_page_config(
-    page_title="📝 Advanced Text Similarity Analyzer",
+    page_title="📝 Text Similarity Analyzer",
     page_icon="🔍",
     layout="wide",
     initial_sidebar_state="expanded"
@@ -40,6 +40,10 @@ st.markdown("""
         color: white;
         text-align: center;
         margin-bottom: 2rem;
+    }
+            
+    .main-header p {
+        margin-bottom: 0;
     }
     
     .metric-card {
@@ -383,8 +387,10 @@ def create_performance_chart(results_history):
 # Header
 st.markdown("""
 <div class="main-header">
-    <h1>🔍 Advanced Text Similarity Analyzer</h1>
-    <p>Lightning Fast Neural Models!</p>
+    <h1>🔍 Semantic Textual Similarity Application</h1>
+    <h4>Universitas Mikroskil</h4>
+    <p>Chrisandy | Fahim | Sandy</p>
+    <p>2025 / 2026</p>
 </div>
 """, unsafe_allow_html=True)
 
@@ -392,25 +398,25 @@ st.markdown("""
 api_health = check_api_health()
 api_connected = api_health["status"] in ["healthy", "unhealthy"]
 
-if api_connected:
-    if api_health["model_loaded"]:
-        st.markdown("""
-        <div class="api-status api-connected">
-            🟢 <strong>API Connected</strong> | Neural Model Loaded | Ready for Analysis!
-        </div>
-        """, unsafe_allow_html=True)
-    else:
-        st.markdown("""
-        <div class="api-status api-connected">
-            🟡 <strong>API Connected</strong> | Neural Model NOT Loaded
-        </div>
-        """, unsafe_allow_html=True)
-else:
-    st.markdown("""
-    <div class="api-status api-disconnected">
-        🔴 <strong>API Disconnected</strong> | Please start FastAPI backend first
-    </div>
-    """, unsafe_allow_html=True)
+# if api_connected:
+#     if api_health["model_loaded"]:
+#         st.markdown("""
+#         <div class="api-status api-connected">
+#             🟢 <strong>API Connected</strong> | Neural Model Loaded | Ready for Analysis!
+#         </div>
+#         """, unsafe_allow_html=True)
+#     else:
+#         st.markdown("""
+#         <div class="api-status api-connected">
+#             🟡 <strong>API Connected</strong> | Neural Model NOT Loaded
+#         </div>
+#         """, unsafe_allow_html=True)
+# else:
+#     st.markdown("""
+#     <div class="api-status api-disconnected">
+#         🔴 <strong>API Disconnected</strong> | Please start FastAPI backend first
+#     </div>
+#     """, unsafe_allow_html=True)
 
 # Sidebar
 st.sidebar.markdown("## 📋 Menu Navigasi")
@@ -421,7 +427,8 @@ analysis_type = st.sidebar.radio(
 )
 
 st.sidebar.markdown("## 🧠 Neural Model")
-st.sidebar.markdown("**Your Trained Model:** MiniLM + BiLSTM + Attention")
+st.sidebar.markdown("**Embedding:** Paraphrase-MiniLM-L6-v2")
+st.sidebar.markdown("**Single Encoder:** BiLSTM + Attention + MLP")
 
 # Performance tracking
 if 'performance_history' not in st.session_state:
