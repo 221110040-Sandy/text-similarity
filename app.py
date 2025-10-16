@@ -50,7 +50,7 @@ def load_neural_model():
     Load model & tokenizer (Functional + LIST inputs) identik dengan skrip STS Dokumen.
     Return bundle dict untuk runtime.
     """
-    print("🧠 Loading neural model...")
+    print(" Loading neural model...")
     print(f"📁 CWD: {os.getcwd()}")
     t0 = time.time()
 
@@ -78,7 +78,7 @@ def load_neural_model():
                 bert = TFAutoModel.from_pretrained(
                     MINI_DIR, config=cfg, local_files_only=True, name="bert_backbone"
                 )
-                print("✅ BERT loaded from artifacts/minilm-tf (offline)")
+                print("BERT loaded from artifacts/minilm-tf (offline)")
             except Exception as e:
                 print(f"⚠️ Failed to load BERT from {MINI_DIR}: {e}")
 
@@ -95,7 +95,7 @@ def load_neural_model():
             bert = TFAutoModel.from_pretrained(
                 MODEL_NAME, config=cfg, from_pt=True, name="bert_backbone"
             )
-            print("✅ BERT loaded online (fallback)")
+            print("BERT loaded online (fallback)")
 
         bert.trainable = False
         # Panggil backbone dengan keyword args (bukan list)
@@ -150,12 +150,12 @@ def load_neural_model():
             try:
                 model.load_weights(WEIGHT_BEST)
                 weights_loaded = True
-                print(f"✅ Weights loaded: {WEIGHT_BEST}")
+                print(f"Weights loaded: {WEIGHT_BEST}")
             except Exception as e:
                 try:
                     model.load_weights(WEIGHT_BEST, by_name=True, skip_mismatch=True)
                     weights_loaded = True
-                    print(f"✅ Weights loaded by_name (skip_mismatch): {WEIGHT_BEST}")
+                    print(f"Weights loaded by_name (skip_mismatch): {WEIGHT_BEST}")
                 except Exception as e2:
                     print(f"⚠️ Failed to load weights: {e2}")
         else:
@@ -180,7 +180,7 @@ def load_neural_model():
             tokenizer.init_kwargs["model_max_length"] = 10_000_000
 
         load_time = time.time() - t0
-        print(f"✅ Model ready in {load_time:.2f}s (weights_loaded={weights_loaded})")
+        print(f"Model ready in {load_time:.2f}s (weights_loaded={weights_loaded})")
 
         return {
             "model": model,
@@ -192,7 +192,7 @@ def load_neural_model():
         }
 
     except Exception as e:
-        print(f"❌ Error loading model: {str(e)}")
+        print(f"Error loading model: {str(e)}")
         import traceback
         traceback.print_exc()
         raise

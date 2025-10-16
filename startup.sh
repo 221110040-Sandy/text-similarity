@@ -9,6 +9,6 @@ sleep 10
 echo "3. Starting Streamlit frontend..."
 streamlit run app_frontend.py
 
-echo "✅ Applications started!"
+echo "Applications started!"
 echo "- Backend API: http://localhost:8000"
 echo "- Frontend UI: http://localhost:8501"

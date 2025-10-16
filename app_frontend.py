@@ -24,8 +24,7 @@ except ImportError:
 
 # Set page config
 st.set_page_config(
-    page_title="📝 Text Similarity Analyzer",
-    page_icon="🔍",
+    page_title="Text Similarity Analyzer",
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -98,6 +97,10 @@ st.markdown("""
     h1 a, h2 a, h3 a, h4 a, h5 a, h6 a {
         display: none !important;
     }
+            
+    button[title="View fullscreen"]{
+        visibility: hidden;
+    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -125,9 +128,9 @@ def validate_document_length(text, max_pages=5):
     estimated_pages = estimate_pages(text)
     word_count = count_words(text)
     if estimated_pages > max_pages:
-        return False, f"❌ Dokumen terlalu panjang! ({estimated_pages} halaman, {word_count} kata). Maksimal {max_pages} halaman (~{max_pages * 250} kata)."
+        return False, f"Dokumen terlalu panjang! ({estimated_pages} halaman, {word_count} kata). Maksimal {max_pages} halaman (~{max_pages * 250} kata)."
     else:
-        return True, f"✅ Dokumen valid ({estimated_pages} halaman, {word_count} kata)"
+        return True, f"Dokumen valid ({estimated_pages} halaman, {word_count} kata)"
 
 def get_text_statistics(text):
     word_count = count_words(text)
@@ -153,7 +156,7 @@ def get_text_statistics(text):
 def extract_text_from_pdf(pdf_file):
     """Extract text from PDF file using multiple methods."""
     if not PDF_SUPPORT:
-        return None, "📦 PDF support tidak tersedia. Install PyPDF2 dan pdfplumber terlebih dahulu."
+        return None, "PDF support tidak tersedia. Install PyPDF2 dan pdfplumber terlebih dahulu."
     
     try:
         # Method 1: Try pdfplumber first (better for complex layouts)
@@ -177,10 +180,10 @@ def extract_text_from_pdf(pdf_file):
         if text.strip():
             return text.strip(), None
         else:
-            return None, "❌ Tidak bisa extract teks dari PDF. File mungkin berupa gambar atau rusak."
+            return None, "Tidak bisa extract teks dari PDF. File mungkin berupa gambar atau rusak."
             
     except Exception as e:
-        return None, f"❌ Error memproses PDF: {str(e)}"
+        return None, f"Error memproses PDF: {str(e)}"
 
 def create_pdf_preview(text, max_chars=500):
     """Create a preview of PDF content."""
@@ -191,19 +194,19 @@ def create_pdf_preview(text, max_chars=500):
 def validate_pdf_file(uploaded_file):
     """Validate if uploaded file is a valid PDF."""
     if uploaded_file.type != "application/pdf":
-        return False, "❌ File harus berformat PDF"
+        return False, "File harus berformat PDF"
     
     # Check file size (max 10MB)
     if uploaded_file.size > 10 * 1024 * 1024:
-        return False, "❌ File PDF terlalu besar! Maksimal 10MB"
+        return False, "File PDF terlalu besar! Maksimal 10MB"
     
-    return True, "✅ File PDF valid"
+    return True, "File PDF valid"
 
 # DOCX Processing Functions
 def extract_text_from_docx(docx_file):
     """Extract text from DOCX file."""
     if not DOCX_SUPPORT:
-        return None, "📦 DOCX support tidak tersedia. Install python-docx terlebih dahulu."
+        return None, "DOCX support tidak tersedia. Install python-docx terlebih dahulu."
     
     try:
         doc = Document(docx_file)
@@ -225,10 +228,10 @@ def extract_text_from_docx(docx_file):
         if text.strip():
             return text.strip(), None
         else:
-            return None, "❌ Tidak ada teks yang bisa diextract dari DOCX. File mungkin kosong."
+            return None, "Tidak ada teks yang bisa diextract dari DOCX. File mungkin kosong."
             
     except Exception as e:
-        return None, f"❌ Error memproses DOCX: {str(e)}"
+        return None, f"Error memproses DOCX: {str(e)}"
 
 def create_docx_preview(text, max_chars=500):
     """Create a preview of DOCX content."""
@@ -247,13 +250,13 @@ def validate_docx_file(uploaded_file):
     if uploaded_file.type not in valid_types:
         # Also check by file extension
         if not uploaded_file.name.lower().endswith(('.docx', '.doc')):
-            return False, "❌ File harus berformat DOCX atau DOC"
+            return False, "File harus berformat DOCX atau DOC"
     
     # Check file size (max 10MB)
     if uploaded_file.size > 10 * 1024 * 1024:
-        return False, "❌ File DOCX terlalu besar! Maksimal 10MB"
+        return False, "File DOCX terlalu besar! Maksimal 10MB"
     
-    return True, "✅ File DOCX valid"
+    return True, "File DOCX valid"
 
 # API Communication Functions
 @st.cache_data(ttl=60)  # Cache for 1 minute
@@ -336,7 +339,7 @@ def create_similarity_gauge(similarity, method="", processing_time=0):
         value = similarity * 100,
         domain = {'x': [0, 1], 'y': [0, 1]},
         title = {
-            'text': f"<b style='font-size: 18px; color: #2d3748;'>Similarity Score (%)</b><br><span style='color: #667eea; font-size: 14px; font-weight: 600;'>{method}</span><br><span style='color: #764ba2; font-size: 13px; font-weight: 500;'>⚡ {processing_time:.3f}s</span>",
+            'text': f"<b style='font-size: 18px; color: #2d3748;'>Similarity Score (%)</b><br><span style='color: #667eea; font-size: 14px; font-weight: 600;'>{method}</span><br><span style='color: #764ba2; font-size: 13px; font-weight: 500;'>{processing_time:.3f}s</span>",
             'font': {'size': 16, 'color': '#2d3748', 'family': 'Inter, -apple-system, BlinkMacSystemFont, sans-serif'}
         },
         number = {
@@ -405,7 +408,7 @@ def create_performance_chart(results_history):
 # Header
 st.markdown("""
 <div class="main-header">
-    <h1>🔍 Semantic Textual Similarity Application</h1>
+    <h1>Semantic Textual Similarity Application</h1>
     <h4>Universitas Mikroskil</h4>
     <p>Chrisandy | Fahim | Sandy</p>
     <p>2025 / 2026</p>
@@ -416,37 +419,32 @@ st.markdown("""
 api_health = check_api_health()
 api_connected = api_health["status"] in ["healthy", "unhealthy"]
 
-# if api_connected:
-#     if api_health["model_loaded"]:
-#         st.markdown("""
-#         <div class="api-status api-connected">
-#             🟢 <strong>API Connected</strong> | Neural Model Loaded | Ready for Analysis!
-#         </div>
-#         """, unsafe_allow_html=True)
-#     else:
-#         st.markdown("""
-#         <div class="api-status api-connected">
-#             🟡 <strong>API Connected</strong> | Neural Model NOT Loaded
-#         </div>
-#         """, unsafe_allow_html=True)
-# else:
-#     st.markdown("""
-#     <div class="api-status api-disconnected">
-#         🔴 <strong>API Disconnected</strong> | Please start FastAPI backend first
-#     </div>
-#     """, unsafe_allow_html=True)
-
 # Sidebar
-st.sidebar.markdown("## 📋 Menu Navigasi")
+st.sidebar.markdown("## Menu Navigasi")
 analysis_type = st.sidebar.radio(
     "Pilih jenis analisis:",
     ["📄 Text Similarity", "📁 Document Similarity"],
     index=0
 )
 
-st.sidebar.markdown("## 🧠 Neural Model")
-st.sidebar.markdown("**Embedding:** Paraphrase-MiniLM-L6-v2")
-st.sidebar.markdown("**Single Encoder:** BiLSTM + Attention + MLP")
+with st.sidebar:
+    c1, c2 = st.columns([1, 12])
+    with c1:
+        st.image("images/model.png", width=24)
+    with c2:
+        st.markdown("Neural Model")
+
+
+st.sidebar.markdown(
+    """
+    <div style="margin:0; line-height:1.2">
+      <strong>Embedding:</strong> Paraphrase-MiniLM-L6-v2<br>
+      <strong>Single Encoder:</strong> BiLSTM + Attention + MLP
+    </div>
+    """,
+    unsafe_allow_html=True
+)
+
 
 # Performance tracking
 if 'performance_history' not in st.session_state:
@@ -454,7 +452,7 @@ if 'performance_history' not in st.session_state:
 
 # Main Application
 if analysis_type == "📄 Text Similarity":
-    st.markdown("## 🔍 Text Similarity Analysis")
+    st.markdown("## Text Similarity Analysis")
     
     col1, col2 = st.columns(2)
     
@@ -466,15 +464,15 @@ if analysis_type == "📄 Text Similarity":
         if text1:
             word_count1 = len(text1.split())
             if word_count1 == 0:
-                st.error("❌ Teks tidak boleh kosong")
+                st.error("Teks tidak boleh kosong")
                 st.session_state.text1_valid = False
             elif word_count1 > 50:
-                st.error(f"❌ Teks terlalu panjang: {word_count1} kata (maksimal 50 kata)")
+                st.error(f"Teks terlalu panjang: {word_count1} kata (maksimal 50 kata)")
                 st.session_state.text1_valid = False
             else:
                 is_valid1, msg1 = validate_document_length(text1)
                 if is_valid1:
-                    st.success(f"✅ {msg1} ({word_count1} kata)")
+                    st.success(f"{msg1} ({word_count1} kata)")
                     st.session_state.text1_valid = True
                 else:
                     st.error(msg1)
@@ -490,15 +488,15 @@ if analysis_type == "📄 Text Similarity":
         if text2:
             word_count2 = len(text2.split())
             if word_count2 == 0:
-                st.error("❌ Teks tidak boleh kosong")
+                st.error("Teks tidak boleh kosong")
                 st.session_state.text2_valid = False
             elif word_count2 > 50:
-                st.error(f"❌ Teks terlalu panjang: {word_count2} kata (maksimal 50 kata)")
+                st.error(f"Teks terlalu panjang: {word_count2} kata (maksimal 50 kata)")
                 st.session_state.text2_valid = False
             else:
                 is_valid2, msg2 = validate_document_length(text2)
                 if is_valid2:
-                    st.success(f"✅ {msg2} ({word_count2} kata)")
+                    st.success(f"{msg2} ({word_count2} kata)")
                     st.session_state.text2_valid = True
                 else:
                     st.error(msg2)
@@ -514,16 +512,16 @@ if analysis_type == "📄 Text Similarity":
     # Tampilkan pesan helper jika ada yang belum valid
     if not both_texts_valid:
         if not st.session_state.get('text1_valid', False) and not st.session_state.get('text2_valid', False):
-            st.info("ℹ️ Masukkan kedua teks yang valid untuk mulai analisis (maksimal 50 kata per teks)")
+            st.info("ℹMasukkan kedua teks yang valid untuk mulai analisis (maksimal 50 kata per teks)")
         elif not st.session_state.get('text1_valid', False):
-            st.warning("⚠️ Teks 1 belum valid atau belum diisi")
+            st.warning("Teks 1 belum valid atau belum diisi")
         elif not st.session_state.get('text2_valid', False):
-            st.warning("⚠️ Teks 2 belum valid atau belum diisi")
+            st.warning("Teks 2 belum valid atau belum diisi")
     
     col_center = st.columns([1, 2, 1])[1]
     with col_center:
         analyze_button = st.button(
-            "🔍 Cek Plagiarisme / Kesamaan", 
+            "Cek Plagiarisme / Kesamaan", 
             type="primary",
             disabled=text_button_disabled,
             use_container_width=True
@@ -531,15 +529,15 @@ if analysis_type == "📄 Text Similarity":
         
         if analyze_button:
             if not text1 or not text2:
-                st.error("❌ Mohon masukkan kedua teks yang valid!")
+                st.error("Mohon masukkan kedua teks yang valid!")
             else:
                 # Show loading
-                with st.spinner("🔄 Menganalisis dengan Neural Model..."):
+                with st.spinner("Menganalisis..."):
                     result = predict_similarity_api(text1, text2)
                 
                 err = result.get("error") or result.get("detail")
                 if err:
-                    st.error(f"❌ {err}")
+                    st.error(f"{err}")
                 else:
                     similarity = result['similarity']
                     processing_time = result['processing_time']
@@ -556,7 +554,7 @@ if analysis_type == "📄 Text Similarity":
                     st.markdown("""
                     <div style='text-align: center; padding: 1rem; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
                                 border-radius: 15px; margin-bottom: 2rem;'>
-                        <h2 style='color: white; margin: 0;'>📊 Hasil Analisis Kesamaan</h2>
+                        <h2 style='color: white; margin: 0;'>Hasil Analisis Kesamaan</h2>
                     </div>
                     """, unsafe_allow_html=True)
                     
@@ -565,17 +563,17 @@ if analysis_type == "📄 Text Similarity":
                     with col_main:
                         if similarity >= 0.8:
                             bg_color = "linear-gradient(135deg, #11998e 0%, #38ef7d 100%)"
-                            status_icon = "🟢"
+                            status_icon = ""
                             status_text = "SANGAT MIRIP"
                             status_desc = "Terdeteksi kemiripan sangat tinggi"
                         elif similarity >= 0.6:
                             bg_color = "linear-gradient(135deg, #f093fb 0%, #f5576c 100%)"
-                            status_icon = "🟡"
+                            status_icon = ""
                             status_text = "CUKUP MIRIP"
                             status_desc = "Terdeteksi kemiripan sedang"
                         else:
                             bg_color = "linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)"
-                            status_icon = "🔵"
+                            status_icon = ""
                             status_text = "BERBEDA"
                             status_desc = "Tidak terdeteksi kemiripan signifikan"
                         
@@ -599,14 +597,14 @@ if analysis_type == "📄 Text Similarity":
                     st.markdown("<br>", unsafe_allow_html=True)
                     
                     # Performance metrics with modern cards
-                    perf_cols = st.columns(3)
+                    perf_cols = st.columns(2)
                     
                     with perf_cols[0]:
                         st.markdown(f"""
                         <div style='background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
                                     padding: 1.5rem; border-radius: 15px; border-left: 4px solid #667eea;'>
                             <div style='color: #667eea; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.5rem;'>
-                                📏 SIMILARITY SCORE
+                                SIMILARITY SCORE
                             </div>
                             <div style='font-size: 2rem; font-weight: 800; color: #2d3748;'>
                                 {similarity:.4f}
@@ -619,7 +617,7 @@ if analysis_type == "📄 Text Similarity":
                         <div style='background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
                                     padding: 1.5rem; border-radius: 15px; border-left: 4px solid #764ba2;'>
                             <div style='color: #764ba2; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.5rem;'>
-                                ⚡ PROCESSING TIME
+                                PROCESSING TIME
                             </div>
                             <div style='font-size: 2rem; font-weight: 800; color: #2d3748;'>
                                 {processing_time:.3f}s
@@ -627,19 +625,6 @@ if analysis_type == "📄 Text Similarity":
                         </div>
                         """, unsafe_allow_html=True)
                     
-                    with perf_cols[2]:
-                        model_status = "Trained" if result.get('weights_loaded') else "Untrained"
-                        st.markdown(f"""
-                        <div style='background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
-                                    padding: 1.5rem; border-radius: 15px; border-left: 4px solid #667eea;'>
-                            <div style='color: #667eea; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.5rem;'>
-                                🤖 MODEL STATUS
-                            </div>
-                            <div style='font-size: 2rem; font-weight: 800; color: #2d3748;'>
-                                {model_status}
-                            </div>
-                        </div>
-                        """, unsafe_allow_html=True)
                     
                     st.markdown("<br>", unsafe_allow_html=True)
                     
@@ -648,7 +633,7 @@ if analysis_type == "📄 Text Similarity":
                     st.plotly_chart(gauge_fig, use_container_width=True)
                     
                     # Text statistics
-                    st.markdown("## 📈 Text Statistics")
+                    st.markdown("## Text Statistics")
                     col1, col2 = st.columns(2)
                     
                     with col1:
@@ -664,7 +649,7 @@ if analysis_type == "📄 Text Similarity":
                             st.metric(key.replace('_', ' ').title(), value)
 
 elif analysis_type == "📁 Document Similarity":
-    st.markdown("## 📁 Document Similarity Analysis")
+    st.markdown("## Document Similarity Analysis")
     
     # Info message based on available support
     supported_formats = []
@@ -675,10 +660,10 @@ elif analysis_type == "📁 Document Similarity":
     supported_formats.append("TXT")
     
     if not PDF_SUPPORT and not DOCX_SUPPORT:
-        st.warning("📦 **PDF & DOCX support tidak tersedia.** Install PyPDF2, pdfplumber, dan python-docx untuk support lengkap.")
-        st.info("🔧 Upload tepat 2 dokumen TXT untuk dibandingkan (maksimal 5 halaman per dokumen)")
+        st.warning("**PDF & DOCX support tidak tersedia.** Install PyPDF2, pdfplumber, dan python-docx untuk support lengkap.")
+        st.info("Upload tepat 2 dokumen TXT untuk dibandingkan (maksimal 5 halaman per dokumen)")
     else:
-        st.info(f"🔧 Upload tepat 2 dokumen ({', '.join(supported_formats)}) untuk dibandingkan (maksimal 5 halaman per dokumen)")
+        st.info(f"Upload tepat 2 dokumen ({', '.join(supported_formats)}) untuk dibandingkan (maksimal 5 halaman per dokumen)")
     
     col1, col2 = st.columns(2)
     
@@ -714,9 +699,9 @@ elif analysis_type == "📁 Document Similarity":
                             is_valid1, msg1 = validate_document_length(doc1_content)
                             
                             if is_valid1:
-                                st.success("✅ DOCX berhasil diproses!")
+                                st.success("DOCX berhasil diproses!")
                                 st.success(msg1)
-                                with st.expander("👁️ Preview Dokumen 1 (dari DOCX)"):
+                                with st.expander("Preview Dokumen 1 (dari DOCX)"):
                                     st.text_area("Content:", create_docx_preview(doc1_content), 
                                                height=150, disabled=True, key="preview1_docx")
                                 st.session_state.doc1_valid = True
@@ -728,7 +713,7 @@ elif analysis_type == "📁 Document Similarity":
                         st.error(docx_msg)
                         st.session_state.doc1_valid = False
                 else:
-                    st.error("❌ DOCX support tidak tersedia")
+                    st.error("DOCX support tidak tersedia")
                     st.session_state.doc1_valid = False
             
             # Handle PDF files
@@ -747,9 +732,9 @@ elif analysis_type == "📁 Document Similarity":
                             is_valid1, msg1 = validate_document_length(doc1_content)
                             
                             if is_valid1:
-                                st.success("✅ PDF berhasil diproses!")
+                                st.success("PDF berhasil diproses!")
                                 st.success(msg1)
-                                with st.expander("👁️ Preview Dokumen 1 (dari PDF)"):
+                                with st.expander("Preview Dokumen 1 (dari PDF)"):
                                     st.text_area("Content:", create_pdf_preview(doc1_content), 
                                                height=150, disabled=True, key="preview1")
                                 st.session_state.doc1_valid = True
@@ -761,7 +746,7 @@ elif analysis_type == "📁 Document Similarity":
                         st.error(pdf_msg)
                         st.session_state.doc1_valid = False
                 else:
-                    st.error("❌ PDF support tidak tersedia")
+                    st.error("PDF support tidak tersedia")
                     st.session_state.doc1_valid = False
             
             # Handle TXT files
@@ -772,9 +757,9 @@ elif analysis_type == "📁 Document Similarity":
                 is_valid1, msg1 = validate_document_length(doc1_content)
                 
                 if is_valid1:
-                    st.success("✅ File TXT berhasil dimuat!")
+                    st.success("File TXT berhasil dimuat!")
                     st.success(msg1)
-                    with st.expander("👁️ Preview Dokumen 1"):
+                    with st.expander("Preview Dokumen 1"):
                         st.text_area("Content:", doc1_content[:500] + "..." if len(doc1_content) > 500 else doc1_content, 
                                    height=150, disabled=True, key="preview1_txt")
                     st.session_state.doc1_valid = True
@@ -811,9 +796,9 @@ elif analysis_type == "📁 Document Similarity":
                             is_valid2, msg2 = validate_document_length(doc2_content)
                             
                             if is_valid2:
-                                st.success("✅ DOCX berhasil diproses!")
+                                st.success("DOCX berhasil diproses!")
                                 st.success(msg2)
-                                with st.expander("👁️ Preview Dokumen 2 (dari DOCX)"):
+                                with st.expander("Preview Dokumen 2 (dari DOCX)"):
                                     st.text_area("Content:", create_docx_preview(doc2_content), 
                                                height=150, disabled=True, key="preview2_docx")
                                 st.session_state.doc2_valid = True
@@ -825,7 +810,7 @@ elif analysis_type == "📁 Document Similarity":
                         st.error(docx_msg)
                         st.session_state.doc2_valid = False
                 else:
-                    st.error("❌ DOCX support tidak tersedia")
+                    st.error("DOCX support tidak tersedia")
                     st.session_state.doc2_valid = False
             
             # Handle PDF files
@@ -844,9 +829,9 @@ elif analysis_type == "📁 Document Similarity":
                             is_valid2, msg2 = validate_document_length(doc2_content)
                             
                             if is_valid2:
-                                st.success("✅ PDF berhasil diproses!")
+                                st.success("PDF berhasil diproses!")
                                 st.success(msg2)
-                                with st.expander("👁️ Preview Dokumen 2 (dari PDF)"):
+                                with st.expander("Preview Dokumen 2 (dari PDF)"):
                                     st.text_area("Content:", create_pdf_preview(doc2_content), 
                                                height=150, disabled=True, key="preview2")
                                 st.session_state.doc2_valid = True
@@ -858,7 +843,7 @@ elif analysis_type == "📁 Document Similarity":
                         st.error(pdf_msg)
                         st.session_state.doc2_valid = False
                 else:
-                    st.error("❌ PDF support tidak tersedia")
+                    st.error("PDF support tidak tersedia")
                     st.session_state.doc2_valid = False
             
             # Handle TXT files
@@ -869,9 +854,9 @@ elif analysis_type == "📁 Document Similarity":
                 is_valid2, msg2 = validate_document_length(doc2_content)
                 
                 if is_valid2:
-                    st.success("✅ File TXT berhasil dimuat!")
+                    st.success("File TXT berhasil dimuat!")
                     st.success(msg2)
-                    with st.expander("👁️ Preview Dokumen 2"):
+                    with st.expander("Preview Dokumen 2"):
                         st.text_area("Content:", doc2_content[:500] + "..." if len(doc2_content) > 500 else doc2_content, 
                                    height=150, disabled=True, key="preview2_txt")
                     st.session_state.doc2_valid = True
@@ -890,21 +875,21 @@ elif analysis_type == "📁 Document Similarity":
     # Tampilkan pesan helper jika ada yang belum valid
     if not both_docs_valid:
         if not st.session_state.get('doc1_valid', False) and not st.session_state.get('doc2_valid', False):
-            st.info("ℹ️ Upload kedua dokumen yang valid untuk mulai analisis")
+            st.info("ℹUpload kedua dokumen yang valid untuk mulai analisis")
         elif not st.session_state.get('doc1_valid', False):
-            st.warning("⚠️ Dokumen 1 belum valid atau belum di-upload")
+            st.warning("Dokumen 1 belum valid atau belum di-upload")
         elif not st.session_state.get('doc2_valid', False):
-            st.warning("⚠️ Dokumen 2 belum valid atau belum di-upload")
+            st.warning("Dokumen 2 belum valid atau belum di-upload")
     
-    if st.button("🔍 Cek Plagiarisme / Kesamaan", type="primary", disabled=button_disabled, use_container_width=True):
+    if st.button("Cek Plagiarisme / Kesamaan", type="primary", disabled=button_disabled, use_container_width=True):
         if not doc1_content or not doc2_content:
-            st.error("❌ Mohon upload kedua dokumen yang valid!")
+            st.error("Mohon upload kedua dokumen yang valid!")
         else:
             # Pastikan model neural tersedia, karena /predict-document butuh model neural
             if not api_health.get("model_loaded"):
-                st.error("🟡 Neural model belum loaded di backend. Buka /health di FastAPI dan pastikan artifacts lengkap. (/predict-document butuh model neural)")
+                st.error("Neural model belum loaded di backend. Buka /health di FastAPI dan pastikan artifacts lengkap. (/predict-document butuh model neural)")
             else:
-                with st.spinner("📊 Menganalisis dokumen (sliding window + BERTScore)..."):
+                with st.spinner("Menganalisis dokumen (sliding window + BERTScore)..."):
                     # Kamu bisa expose parameter di sidebar kalau mau
                     result = predict_document_api(
                         doc1_content, doc2_content,
@@ -914,7 +899,7 @@ elif analysis_type == "📁 Document Similarity":
                         use_symmetric=True
                     )
                 if "error" in result:
-                    st.error(f"❌ {result['error']}")
+                    st.error(f"{result['error']}")
                 else:
                     doc_score = result["doc_score"]
                     processing_time = result["processing_time"]
@@ -927,8 +912,7 @@ elif analysis_type == "📁 Document Similarity":
                     st.markdown("""
                     <div style='text-align: center; padding: 1rem; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
                                 border-radius: 15px; margin-bottom: 2rem;'>
-                        <h2 style='color: white; margin: 0;'>🎯 Hasil Analisis Dokumen</h2>
-                        <p style='color: rgba(255,255,255,0.9); margin: 0.5rem 0 0 0; font-size: 0.9rem;'>BERTScore-like F1 Analysis</p>
+                        <h2 style='color: white; margin: 0;'>Hasil Analisis Dokumen</h2>
                     </div>
                     """, unsafe_allow_html=True)
                     
@@ -937,17 +921,17 @@ elif analysis_type == "📁 Document Similarity":
                     with col_main:
                         if doc_score >= 0.8:
                             bg_color = "linear-gradient(135deg, #f093fb 0%, #f5576c 100%)"
-                            status_icon = "🚨"
-                            status_text = "PLAGIARISME TERDETEKSI"
+                            status_icon = ""
+                            status_text = "KEMIRIPAN TINGGI"
                             status_desc = "Kemiripan sangat tinggi - potensi plagiarisme"
                         elif doc_score >= 0.6:
                             bg_color = "linear-gradient(135deg, #ffeaa7 0%, #fdcb6e 100%)"
-                            status_icon = "⚠️"
-                            status_text = "PERLU DITINJAU"
+                            status_icon = ""
+                            status_text = "KEMIRIPAN SEDANG"
                             status_desc = "Kemiripan cukup tinggi - perlu verifikasi"
                         else:
                             bg_color = "linear-gradient(135deg, #11998e 0%, #38ef7d 100%)"
-                            status_icon = "✅"
+                            status_icon = ""
                             status_text = "DOKUMEN UNIK"
                             status_desc = "Tidak terdeteksi plagiarisme signifikan"
                         
@@ -978,7 +962,7 @@ elif analysis_type == "📁 Document Similarity":
                         <div style='background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
                                     padding: 1.5rem; border-radius: 15px; border-left: 4px solid #667eea;'>
                             <div style='color: #667eea; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.5rem;'>
-                                📊 F1 SCORE
+                                F1 SCORE
                             </div>
                             <div style='font-size: 2rem; font-weight: 800; color: #2d3748;'>
                                 {doc_score:.4f}
@@ -991,7 +975,7 @@ elif analysis_type == "📁 Document Similarity":
                         <div style='background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
                                     padding: 1.5rem; border-radius: 15px; border-left: 4px solid #764ba2;'>
                             <div style='color: #764ba2; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.5rem;'>
-                                📏 WINDOW PAIRS
+                                WINDOW PAIRS
                             </div>
                             <div style='font-size: 2rem; font-weight: 800; color: #2d3748;'>
                                 {shape['m']} × {shape['n']}
@@ -1004,7 +988,7 @@ elif analysis_type == "📁 Document Similarity":
                         <div style='background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
                                     padding: 1.5rem; border-radius: 15px; border-left: 4px solid #667eea;'>
                             <div style='color: #667eea; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.5rem;'>
-                                ⚡ PROCESSING TIME
+                                PROCESSING TIME
                             </div>
                             <div style='font-size: 2rem; font-weight: 800; color: #2d3748;'>
                                 {processing_time:.3f}s
@@ -1022,7 +1006,7 @@ elif analysis_type == "📁 Document Similarity":
                     st.markdown("""
                     <div style='background: linear-gradient(90deg, #667eea 0%, #764ba2 100%); 
                                 padding: 0.75rem; border-radius: 10px; margin: 1.5rem 0;'>
-                        <h3 style='color: white; margin: 0; font-size: 1.1rem;'>📌 Precision / Recall / F1 Metrics</h3>
+                        <h3 style='color: white; margin: 0; font-size: 1.1rem;'> Precision / Recall / F1 Metrics</h3>
                     </div>
                     """, unsafe_allow_html=True)
                     
@@ -1111,27 +1095,27 @@ elif analysis_type == "📁 Document Similarity":
                                 <div style='background: white; padding: 0.75rem; border-radius: 8px; margin-bottom: 0.5rem; 
                                             border: 1px solid #e2e8f0;'>
                                     <div style='color: #667eea; font-weight: 600; font-size: 0.85rem; margin-bottom: 0.25rem;'>
-                                        📄 Window A:
+                                        Window A:
                                     </div>
                                     <div style='color: #2d3748; line-height: 1.6;'>{ev["windowA"]}</div>
                                 </div>
                                 <div style='background: white; padding: 0.75rem; border-radius: 8px; border: 1px solid #e2e8f0;'>
                                     <div style='color: #764ba2; font-weight: 600; font-size: 0.85rem; margin-bottom: 0.25rem;'>
-                                        📄 Window B:
+                                        Window B:
                                     </div>
                                     <div style='color: #2d3748; line-height: 1.6;'>{ev["windowB"]}</div>
                                 </div>
                             </div>
                             """, unsafe_allow_html=True)
                     else:
-                        st.info("ℹ️ Tidak ada evidence (kemungkinan dokumen sangat pendek).")
+                        st.info("ℹTidak ada evidence (kemungkinan dokumen sangat pendek).")
 
 # Footer & Additional Info
 st.markdown("---")
 
 # Performance Analytics
 if st.session_state.performance_history:
-    with st.expander("📊 Performance Analytics"):
+    with st.expander("Performance Analytics"):
         perf_chart = create_performance_chart(st.session_state.performance_history)
         if perf_chart:
             st.plotly_chart(perf_chart, width="stretch")
