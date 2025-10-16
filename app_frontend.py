@@ -447,37 +447,72 @@ if analysis_type == "📄 Text Similarity":
     
     with col1:
         st.markdown("### 📝 Teks 1")
-        text1 = st.text_area("Masukkan teks pertama:", height=200, key="text1", 
+        text1 = st.text_area("Masukkan teks pertama (maksimal 50 kata):", height=200, key="text1", 
                             placeholder="Paste atau ketik teks pertama di sini...")
         
         if text1:
-            is_valid1, msg1 = validate_document_length(text1)
-            if is_valid1:
-                st.success(msg1)
+            word_count1 = len(text1.split())
+            if word_count1 == 0:
+                st.error("❌ Teks tidak boleh kosong")
+                st.session_state.text1_valid = False
+            elif word_count1 > 50:
+                st.error(f"❌ Teks terlalu panjang: {word_count1} kata (maksimal 50 kata)")
+                st.session_state.text1_valid = False
             else:
-                st.error(msg1)
-                text1 = ""
+                is_valid1, msg1 = validate_document_length(text1)
+                if is_valid1:
+                    st.success(f"✅ {msg1} ({word_count1} kata)")
+                    st.session_state.text1_valid = True
+                else:
+                    st.error(msg1)
+                    st.session_state.text1_valid = False
+        else:
+            st.session_state.text1_valid = False
     
     with col2:
         st.markdown("### 📝 Teks 2")
-        text2 = st.text_area("Masukkan teks kedua:", height=200, key="text2",
+        text2 = st.text_area("Masukkan teks kedua (maksimal 50 kata):", height=200, key="text2",
                             placeholder="Paste atau ketik teks kedua di sini...")
         
         if text2:
-            is_valid2, msg2 = validate_document_length(text2)
-            if is_valid2:
-                st.success(msg2)
+            word_count2 = len(text2.split())
+            if word_count2 == 0:
+                st.error("❌ Teks tidak boleh kosong")
+                st.session_state.text2_valid = False
+            elif word_count2 > 50:
+                st.error(f"❌ Teks terlalu panjang: {word_count2} kata (maksimal 50 kata)")
+                st.session_state.text2_valid = False
             else:
-                st.error(msg2)
-                text2 = ""
+                is_valid2, msg2 = validate_document_length(text2)
+                if is_valid2:
+                    st.success(f"✅ {msg2} ({word_count2} kata)")
+                    st.session_state.text2_valid = True
+                else:
+                    st.error(msg2)
+                    st.session_state.text2_valid = False
+        else:
+            st.session_state.text2_valid = False
     
     # Analysis button
+    # Cek apakah kedua teks valid
+    both_texts_valid = st.session_state.get('text1_valid', False) and st.session_state.get('text2_valid', False)
+    text_button_disabled = not (api_connected and api_health["model_loaded"] and both_texts_valid)
+    
+    # Tampilkan pesan helper jika ada yang belum valid
+    if not both_texts_valid:
+        if not st.session_state.get('text1_valid', False) and not st.session_state.get('text2_valid', False):
+            st.info("ℹ️ Masukkan kedua teks yang valid untuk mulai analisis (maksimal 50 kata per teks)")
+        elif not st.session_state.get('text1_valid', False):
+            st.warning("⚠️ Teks 1 belum valid atau belum diisi")
+        elif not st.session_state.get('text2_valid', False):
+            st.warning("⚠️ Teks 2 belum valid atau belum diisi")
+    
     col_center = st.columns([1, 2, 1])[1]
     with col_center:
         analyze_button = st.button(
-            "🧠 Analisis dengan Neural Model", 
+            "🔍 Cek Plagiarisme / Kesamaan", 
             type="primary",
-            disabled=not (api_connected and api_health["model_loaded"]),
+            disabled=text_button_disabled,
             use_container_width=True
         )
         
@@ -618,6 +653,7 @@ elif analysis_type == "📁 Document Similarity":
         if uploaded_file1:
             # Handle DOCX files
             if uploaded_file1.name.lower().endswith(('.docx', '.doc')):
+                st.session_state.doc1_valid = False
                 if DOCX_SUPPORT:
                     is_valid_docx, docx_msg = validate_docx_file(uploaded_file1)
                     if is_valid_docx:
@@ -625,6 +661,7 @@ elif analysis_type == "📁 Document Similarity":
                             text, error = extract_text_from_docx(uploaded_file1)
                         if error:
                             st.error(error)
+                            st.session_state.doc1_valid = False
                         else:
                             doc1_content = text
                             is_valid1, msg1 = validate_document_length(doc1_content)
@@ -635,16 +672,21 @@ elif analysis_type == "📁 Document Similarity":
                                 with st.expander("👁️ Preview Dokumen 1 (dari DOCX)"):
                                     st.text_area("Content:", create_docx_preview(doc1_content), 
                                                height=150, disabled=True, key="preview1_docx")
+                                st.session_state.doc1_valid = True
                             else:
                                 st.error(msg1)
                                 doc1_content = ""
+                                st.session_state.doc1_valid = False
                     else:
                         st.error(docx_msg)
+                        st.session_state.doc1_valid = False
                 else:
                     st.error("❌ DOCX support tidak tersedia")
+                    st.session_state.doc1_valid = False
             
             # Handle PDF files
             elif uploaded_file1.type == "application/pdf":
+                st.session_state.doc1_valid = False
                 if PDF_SUPPORT:
                     is_valid_pdf, pdf_msg = validate_pdf_file(uploaded_file1)
                     if is_valid_pdf:
@@ -652,6 +694,7 @@ elif analysis_type == "📁 Document Similarity":
                             text, error = extract_text_from_pdf(uploaded_file1)
                         if error:
                             st.error(error)
+                            st.session_state.doc1_valid = False
                         else:
                             doc1_content = text
                             is_valid1, msg1 = validate_document_length(doc1_content)
@@ -662,16 +705,21 @@ elif analysis_type == "📁 Document Similarity":
                                 with st.expander("👁️ Preview Dokumen 1 (dari PDF)"):
                                     st.text_area("Content:", create_pdf_preview(doc1_content), 
                                                height=150, disabled=True, key="preview1")
+                                st.session_state.doc1_valid = True
                             else:
                                 st.error(msg1)
                                 doc1_content = ""
+                                st.session_state.doc1_valid = False
                     else:
                         st.error(pdf_msg)
+                        st.session_state.doc1_valid = False
                 else:
                     st.error("❌ PDF support tidak tersedia")
+                    st.session_state.doc1_valid = False
             
             # Handle TXT files
             else:
+                st.session_state.doc1_valid = False
                 # TXT file
                 doc1_content = uploaded_file1.read().decode("utf-8")
                 is_valid1, msg1 = validate_document_length(doc1_content)
@@ -682,9 +730,13 @@ elif analysis_type == "📁 Document Similarity":
                     with st.expander("👁️ Preview Dokumen 1"):
                         st.text_area("Content:", doc1_content[:500] + "..." if len(doc1_content) > 500 else doc1_content, 
                                    height=150, disabled=True, key="preview1_txt")
+                    st.session_state.doc1_valid = True
                 else:
                     st.error(msg1)
                     doc1_content = ""
+                    st.session_state.doc1_valid = False
+        else:
+            st.session_state.doc1_valid = False
     
     with col2:
         st.markdown("### 📄 Dokumen 2")
@@ -698,6 +750,7 @@ elif analysis_type == "📁 Document Similarity":
         if uploaded_file2:
             # Handle DOCX files
             if uploaded_file2.name.lower().endswith(('.docx', '.doc')):
+                st.session_state.doc2_valid = False
                 if DOCX_SUPPORT:
                     is_valid_docx, docx_msg = validate_docx_file(uploaded_file2)
                     if is_valid_docx:
@@ -705,6 +758,7 @@ elif analysis_type == "📁 Document Similarity":
                             text, error = extract_text_from_docx(uploaded_file2)
                         if error:
                             st.error(error)
+                            st.session_state.doc2_valid = False
                         else:
                             doc2_content = text
                             is_valid2, msg2 = validate_document_length(doc2_content)
@@ -715,16 +769,21 @@ elif analysis_type == "📁 Document Similarity":
                                 with st.expander("👁️ Preview Dokumen 2 (dari DOCX)"):
                                     st.text_area("Content:", create_docx_preview(doc2_content), 
                                                height=150, disabled=True, key="preview2_docx")
+                                st.session_state.doc2_valid = True
                             else:
                                 st.error(msg2)
                                 doc2_content = ""
+                                st.session_state.doc2_valid = False
                     else:
                         st.error(docx_msg)
+                        st.session_state.doc2_valid = False
                 else:
                     st.error("❌ DOCX support tidak tersedia")
+                    st.session_state.doc2_valid = False
             
             # Handle PDF files
             elif uploaded_file2.type == "application/pdf":
+                st.session_state.doc2_valid = False
                 if PDF_SUPPORT:
                     is_valid_pdf, pdf_msg = validate_pdf_file(uploaded_file2)
                     if is_valid_pdf:
@@ -732,6 +791,7 @@ elif analysis_type == "📁 Document Similarity":
                             text, error = extract_text_from_pdf(uploaded_file2)
                         if error:
                             st.error(error)
+                            st.session_state.doc2_valid = False
                         else:
                             doc2_content = text
                             is_valid2, msg2 = validate_document_length(doc2_content)
@@ -742,16 +802,21 @@ elif analysis_type == "📁 Document Similarity":
                                 with st.expander("👁️ Preview Dokumen 2 (dari PDF)"):
                                     st.text_area("Content:", create_pdf_preview(doc2_content), 
                                                height=150, disabled=True, key="preview2")
+                                st.session_state.doc2_valid = True
                             else:
                                 st.error(msg2)
                                 doc2_content = ""
+                                st.session_state.doc2_valid = False
                     else:
                         st.error(pdf_msg)
+                        st.session_state.doc2_valid = False
                 else:
                     st.error("❌ PDF support tidak tersedia")
+                    st.session_state.doc2_valid = False
             
             # Handle TXT files
             else:
+                st.session_state.doc2_valid = False
                 # TXT file
                 doc2_content = uploaded_file2.read().decode("utf-8")
                 is_valid2, msg2 = validate_document_length(doc2_content)
@@ -762,12 +827,29 @@ elif analysis_type == "📁 Document Similarity":
                     with st.expander("👁️ Preview Dokumen 2"):
                         st.text_area("Content:", doc2_content[:500] + "..." if len(doc2_content) > 500 else doc2_content, 
                                    height=150, disabled=True, key="preview2_txt")
+                    st.session_state.doc2_valid = True
                 else:
                     st.error(msg2)
                     doc2_content = ""
+                    st.session_state.doc2_valid = False
+        else:
+            st.session_state.doc2_valid = False
     
     # Analysis button
-    if st.button("🧠 Bandingkan Dokumen dengan Neural Model", type="primary", disabled=not (api_connected and api_health["model_loaded"]), use_container_width=True):
+    # Cek apakah kedua dokumen valid
+    both_docs_valid = st.session_state.get('doc1_valid', False) and st.session_state.get('doc2_valid', False)
+    button_disabled = not (api_connected and api_health["model_loaded"] and both_docs_valid)
+    
+    # Tampilkan pesan helper jika ada yang belum valid
+    if not both_docs_valid:
+        if not st.session_state.get('doc1_valid', False) and not st.session_state.get('doc2_valid', False):
+            st.info("ℹ️ Upload kedua dokumen yang valid untuk mulai analisis")
+        elif not st.session_state.get('doc1_valid', False):
+            st.warning("⚠️ Dokumen 1 belum valid atau belum di-upload")
+        elif not st.session_state.get('doc2_valid', False):
+            st.warning("⚠️ Dokumen 2 belum valid atau belum di-upload")
+    
+    if st.button("🔍 Cek Plagiarisme / Kesamaan", type="primary", disabled=button_disabled, use_container_width=True):
         if not doc1_content or not doc2_content:
             st.error("❌ Mohon upload kedua dokumen yang valid!")
         else:
