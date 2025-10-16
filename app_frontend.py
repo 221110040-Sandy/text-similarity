@@ -339,8 +339,8 @@ def create_similarity_gauge(similarity, method="", processing_time=0):
         value = similarity * 100,
         domain = {'x': [0, 1], 'y': [0, 1]},
         title = {
-            'text': f"<b style='font-size: 18px; color: #2d3748;'>Similarity Score (%)</b><br><span style='color: #667eea; font-size: 14px; font-weight: 600;'>{method}</span><br><span style='color: #764ba2; font-size: 13px; font-weight: 500;'>{processing_time:.3f}s</span>",
-            'font': {'size': 16, 'color': '#2d3748', 'family': 'Inter, -apple-system, BlinkMacSystemFont, sans-serif'}
+            'text': f"<b style='font-size: 18px; color: #ffffff;'>Similarity Score (%)</b>",
+            'font': {'size': 16, 'color': '#ffffff', 'family': 'Inter, -apple-system, BlinkMacSystemFont, sans-serif'}
         },
         number = {
             'font': {'size': 56, 'color': bar_color, 'family': 'Inter, -apple-system, BlinkMacSystemFont, sans-serif'},
@@ -372,7 +372,7 @@ def create_similarity_gauge(similarity, method="", processing_time=0):
     
     fig.update_layout(
         height=350, 
-        font={'color': "#2d3748", 'family': "Inter, sans-serif"},
+        font={'color': "#ffffff", 'family': "Inter, sans-serif"},
         paper_bgcolor='rgba(0,0,0,0)',
         plot_bgcolor='rgba(0,0,0,0)',
         margin=dict(l=20, r=20, t=80, b=20)
@@ -606,7 +606,7 @@ if analysis_type == "📄 Text Similarity":
                             <div style='color: #667eea; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.5rem;'>
                                 SIMILARITY SCORE
                             </div>
-                            <div style='font-size: 2rem; font-weight: 800; color: #2d3748;'>
+                            <div style='font-size: 2rem; font-weight: 800; color: #ffffff;'>
                                 {similarity:.4f}
                             </div>
                         </div>
@@ -619,7 +619,7 @@ if analysis_type == "📄 Text Similarity":
                             <div style='color: #764ba2; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.5rem;'>
                                 PROCESSING TIME
                             </div>
-                            <div style='font-size: 2rem; font-weight: 800; color: #2d3748;'>
+                            <div style='font-size: 2rem; font-weight: 800; color: #ffffff;'>
                                 {processing_time:.3f}s
                             </div>
                         </div>
@@ -964,7 +964,7 @@ elif analysis_type == "📁 Document Similarity":
                             <div style='color: #667eea; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.5rem;'>
                                 F1 SCORE
                             </div>
-                            <div style='font-size: 2rem; font-weight: 800; color: #2d3748;'>
+                            <div style='font-size: 2rem; font-weight: 800; color: #ffffff;'>
                                 {doc_score:.4f}
                             </div>
                         </div>
@@ -977,7 +977,7 @@ elif analysis_type == "📁 Document Similarity":
                             <div style='color: #764ba2; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.5rem;'>
                                 WINDOW PAIRS
                             </div>
-                            <div style='font-size: 2rem; font-weight: 800; color: #2d3748;'>
+                            <div style='font-size: 2rem; font-weight: 800; color: #ffffff;'>
                                 {shape['m']} × {shape['n']}
                             </div>
                         </div>
@@ -990,7 +990,7 @@ elif analysis_type == "📁 Document Similarity":
                             <div style='color: #667eea; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.5rem;'>
                                 PROCESSING TIME
                             </div>
-                            <div style='font-size: 2rem; font-weight: 800; color: #2d3748;'>
+                            <div style='font-size: 2rem; font-weight: 800; color: #ffffff;'>
                                 {processing_time:.3f}s
                             </div>
                         </div>
@@ -1019,12 +1019,12 @@ elif analysis_type == "📁 Document Similarity":
                             <div style='background: rgba(102, 126, 234, 0.05); padding: 1.5rem; border-radius: 12px; border: 2px solid #667eea;'>
                                 <div style='color: #667eea; font-weight: 600; margin-bottom: 1rem; font-size: 1.1rem;'>📄 Dokumen A → B</div>
                                 <div style='display: flex; justify-content: space-between; margin-bottom: 0.5rem;'>
-                                    <span style='color: #4a5568;'>Precision:</span>
-                                    <span style='font-weight: 700; color: #2d3748;'>{a2b['P']:.3f}</span>
+                                    <span style='color: #ffffff;'>Precision:</span>
+                                    <span style='font-weight: 700; color: #ffffff;'>{a2b['P']:.3f}</span>
                                 </div>
                                 <div style='display: flex; justify-content: space-between; margin-bottom: 0.5rem;'>
-                                    <span style='color: #4a5568;'>Recall:</span>
-                                    <span style='font-weight: 700; color: #2d3748;'>{a2b['R']:.3f}</span>
+                                    <span style='color: #ffffff;'>Recall:</span>
+                                    <span style='font-weight: 700; color: #ffffff;'>{a2b['R']:.3f}</span>
                                 </div>
                                 <div style='display: flex; justify-content: space-between; padding-top: 0.5rem; border-top: 2px solid #667eea;'>
                                     <span style='color: #667eea; font-weight: 600;'>F1 Score:</span>
@@ -1038,12 +1038,12 @@ elif analysis_type == "📁 Document Similarity":
                             <div style='background: rgba(118, 75, 162, 0.05); padding: 1.5rem; border-radius: 12px; border: 2px solid #764ba2;'>
                                 <div style='color: #764ba2; font-weight: 600; margin-bottom: 1rem; font-size: 1.1rem;'>📄 Dokumen B → A</div>
                                 <div style='display: flex; justify-content: space-between; margin-bottom: 0.5rem;'>
-                                    <span style='color: #4a5568;'>Precision:</span>
-                                    <span style='font-weight: 700; color: #2d3748;'>{b2a['P']:.3f}</span>
+                                    <span style='color: #ffffff;'>Precision:</span>
+                                    <span style='font-weight: 700; color: #ffffff;'>{b2a['P']:.3f}</span>
                                 </div>
                                 <div style='display: flex; justify-content: space-between; margin-bottom: 0.5rem;'>
-                                    <span style='color: #4a5568;'>Recall:</span>
-                                    <span style='font-weight: 700; color: #2d3748;'>{b2a['R']:.3f}</span>
+                                    <span style='color: #ffffff;'>Recall:</span>
+                                    <span style='font-weight: 700; color: #ffffff;'>{b2a['R']:.3f}</span>
                                 </div>
                                 <div style='display: flex; justify-content: space-between; padding-top: 0.5rem; border-top: 2px solid #764ba2;'>
                                     <span style='color: #764ba2; font-weight: 600;'>F1 Score:</span>
@@ -1057,12 +1057,12 @@ elif analysis_type == "📁 Document Similarity":
                         <div style='background: rgba(102, 126, 234, 0.05); padding: 1.5rem; border-radius: 12px; border: 2px solid #667eea;'>
                             <div style='color: #667eea; font-weight: 600; margin-bottom: 1rem; font-size: 1.1rem;'>📄 Dokumen A → B</div>
                             <div style='display: flex; justify-content: space-between; margin-bottom: 0.5rem;'>
-                                <span style='color: #4a5568;'>Precision:</span>
-                                <span style='font-weight: 700; color: #2d3748;'>{a2b['P']:.3f}</span>
+                                <span style='color: #ffffff;'>Precision:</span>
+                                <span style='font-weight: 700; color: #ffffff;'>{a2b['P']:.3f}</span>
                             </div>
                             <div style='display: flex; justify-content: space-between; margin-bottom: 0.5rem;'>
-                                <span style='color: #4a5568;'>Recall:</span>
-                                <span style='font-weight: 700; color: #2d3748;'>{a2b['R']:.3f}</span>
+                                <span style='color: #ffffff;'>Recall:</span>
+                                <span style='font-weight: 700; color: #ffffff;'>{a2b['R']:.3f}</span>
                             </div>
                             <div style='display: flex; justify-content: space-between; padding-top: 0.5rem; border-top: 2px solid #667eea;'>
                                 <span style='color: #667eea; font-weight: 600;'>F1 Score:</span>
@@ -1086,7 +1086,7 @@ elif analysis_type == "📁 Document Similarity":
                             <div style='background: rgba(102, 126, 234, 0.03); padding: 1.25rem; border-radius: 12px; 
                                         margin-bottom: 1rem; border-left: 5px solid {score_color};'>
                                 <div style='display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;'>
-                                    <span style='font-weight: 700; color: #2d3748; font-size: 1.1rem;'>Evidence #{k}</span>
+                                    <span style='font-weight: 700; color: #ffffff; font-size: 1.1rem;'>Evidence #{k}</span>
                                     <span style='background: {score_color}; color: white; padding: 0.25rem 0.75rem; 
                                                 border-radius: 20px; font-weight: 700; font-size: 0.9rem;'>
                                         {ev['score']:.3f}
@@ -1097,13 +1097,13 @@ elif analysis_type == "📁 Document Similarity":
                                     <div style='color: #667eea; font-weight: 600; font-size: 0.85rem; margin-bottom: 0.25rem;'>
                                         Window A:
                                     </div>
-                                    <div style='color: #2d3748; line-height: 1.6;'>{ev["windowA"]}</div>
+                                    <div style='color: #000000; line-height: 1.6;'>{ev["windowA"]}</div>
                                 </div>
                                 <div style='background: white; padding: 0.75rem; border-radius: 8px; border: 1px solid #e2e8f0;'>
                                     <div style='color: #764ba2; font-weight: 600; font-size: 0.85rem; margin-bottom: 0.25rem;'>
                                         Window B:
                                     </div>
-                                    <div style='color: #2d3748; line-height: 1.6;'>{ev["windowB"]}</div>
+                                    <div style='color: #000000; line-height: 1.6;'>{ev["windowB"]}</div>
                                 </div>
                             </div>
                             """, unsafe_allow_html=True)

@@ -584,7 +584,7 @@ if __name__ == "__main__":
     print("📖 Docs: http://localhost:8000/docs")
 
     uvicorn.run(
-        "model_api:app",
+        "app:app",
         host="0.0.0.0",
         port=8000,
         reload=False,  # True untuk dev hot-reload (disarankan 1 worker)
