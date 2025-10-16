@@ -301,32 +301,57 @@ def predict_document_api(doc1: str, doc2: str, per_side_len: int = 28, stride: i
 
 # Visualization Functions
 def create_similarity_gauge(similarity, method="", processing_time=0):
+    # Tentukan warna bar berdasarkan similarity
+    if similarity >= 0.8:
+        bar_color = "#f5576c"  # Merah untuk plagiarisme tinggi
+    elif similarity >= 0.6:
+        bar_color = "#fdcb6e"  # Kuning untuk sedang
+    else:
+        bar_color = "#00b894"  # Hijau untuk rendah/aman
+    
     fig = go.Figure(go.Indicator(
         mode = "gauge+number",
         value = similarity * 100,
         domain = {'x': [0, 1], 'y': [0, 1]},
         title = {
-            'text': f"Similarity Score (%)<br><sub>{method}</sub><br><sub>⚡ {processing_time:.3f}s</sub>",
-            'font': {'size': 14}
+            'text': f"<b style='font-size: 18px; color: #2d3748;'>Similarity Score (%)</b><br><span style='color: #667eea; font-size: 14px; font-weight: 600;'>{method}</span><br><span style='color: #764ba2; font-size: 13px; font-weight: 500;'>⚡ {processing_time:.3f}s</span>",
+            'font': {'size': 16, 'color': '#2d3748', 'family': 'Inter, -apple-system, BlinkMacSystemFont, sans-serif'}
+        },
+        number = {
+            'font': {'size': 56, 'color': bar_color, 'family': 'Inter, -apple-system, BlinkMacSystemFont, sans-serif'},
+            'suffix': '%'
         },
         gauge = {
-            'axis': {'range': [None, 100], 'tickwidth': 1},
-            'bar': {'color': "darkblue", 'thickness': 0.3},
+            'axis': {
+                'range': [None, 100], 
+                'tickwidth': 2,
+                'tickcolor': '#cbd5e0',
+                'tickfont': {'size': 13, 'color': '#4a5568', 'family': 'Inter, sans-serif'}
+            },
+            'bar': {'color': bar_color, 'thickness': 0.35},
+            'bgcolor': 'white',
+            'borderwidth': 2,
+            'bordercolor': '#e2e8f0',
             'steps': [
-                {'range': [0, 30], 'color': "lightgray"},
-                {'range': [30, 60], 'color': "yellow"},
-                {'range': [60, 80], 'color': "orange"},
-                {'range': [80, 100], 'color': "green"}
+                {'range': [0, 60], 'color': 'rgba(0, 184, 148, 0.15)'},   # Hijau muda
+                {'range': [60, 80], 'color': 'rgba(253, 203, 110, 0.15)'}, # Kuning muda
+                {'range': [80, 100], 'color': 'rgba(245, 87, 108, 0.15)'}  # Merah muda
             ],
             'threshold': {
-                'line': {'color': "red", 'width': 4},
-                'thickness': 0.75,
-                'value': 90
+                'line': {'color': bar_color, 'width': 5},
+                'thickness': 0.8,
+                'value': similarity * 100
             }
         }
     ))
     
-    fig.update_layout(height=300, font={'color': "darkblue", 'family': "Arial"})
+    fig.update_layout(
+        height=350, 
+        font={'color': "#2d3748", 'family': "Inter, sans-serif"},
+        paper_bgcolor='rgba(0,0,0,0)',
+        plot_bgcolor='rgba(0,0,0,0)',
+        margin=dict(l=20, r=20, t=80, b=20)
+    )
     return fig
 
 def create_performance_chart(results_history):
@@ -538,67 +563,101 @@ if analysis_type == "📄 Text Similarity":
                         'similarity': similarity
                     })
                     
-                    # Results display
-                    st.markdown("## 📊 Hasil Analisis")
+                    # Results display with modern design
+                    st.markdown("---")
+                    st.markdown("""
+                    <div style='text-align: center; padding: 1rem; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+                                border-radius: 15px; margin-bottom: 2rem;'>
+                        <h2 style='color: white; margin: 0;'>📊 Hasil Analisis Kesamaan</h2>
+                    </div>
+                    """, unsafe_allow_html=True)
                     
-                    # Performance metrics
-                    perf_cols = st.columns(4)
-                    with perf_cols[0]:
-                        st.metric("Similarity Score", f"{similarity:.4f}")
-                    with perf_cols[1]:
-                        st.metric("Percentage", f"{similarity*100:.2f}%")
-                    with perf_cols[2]:
-                        st.metric("Processing Time", f"{processing_time:.3f}s")
-                    with perf_cols[3]:
-                        if 'weights_loaded' in result and result['weights_loaded'] is not None:
-                            status = "Trained" if result['weights_loaded'] else "Untrained"
-                            st.metric("Model Status", status)
-                        else:
-                            st.metric("Model", "Neural")
-                    
-                    # Main visualization
-                    col1, col2, col3 = st.columns([1, 2, 1])
-                    
-                    with col1:
+                    # Main Score Card - Large and Centered
+                    col_space1, col_main, col_space2 = st.columns([1, 2, 1])
+                    with col_main:
                         if similarity >= 0.8:
-                            st.markdown(f"""
-                            <div class="metric-card similarity-high">
-                                <h3>Hasil Akhir</h3>
-                                <h1>{similarity:.4f}</h1>
-                                <p>({similarity*100:.2f}%)</p>
-                                <p><strong>🟢 Sangat Mirip</strong></p>
-                            </div>
-                            """, unsafe_allow_html=True)
+                            bg_color = "linear-gradient(135deg, #11998e 0%, #38ef7d 100%)"
+                            status_icon = "🟢"
+                            status_text = "SANGAT MIRIP"
+                            status_desc = "Terdeteksi kemiripan sangat tinggi"
                         elif similarity >= 0.6:
-                            st.markdown(f"""
-                            <div class="metric-card similarity-medium">
-                                <h3>Hasil Akhir</h3>
-                                <h1>{similarity:.4f}</h1>
-                                <p>({similarity*100:.2f}%)</p>
-                                <p><strong>🟡 Cukup Mirip</strong></p>
-                            </div>
-                            """, unsafe_allow_html=True)
+                            bg_color = "linear-gradient(135deg, #f093fb 0%, #f5576c 100%)"
+                            status_icon = "🟡"
+                            status_text = "CUKUP MIRIP"
+                            status_desc = "Terdeteksi kemiripan sedang"
                         else:
-                            st.markdown(f"""
-                            <div class="metric-card similarity-low">
-                                <h3>Hasil Akhir</h3>
-                                <h1>{similarity:.4f}</h1>
-                                <p>({similarity*100:.2f}%)</p>
-                                <p><strong>🔴 Tidak Mirip</strong></p>
-                            </div>
-                            """, unsafe_allow_html=True)
-                    
-                    with col2:
-                        gauge_fig = create_similarity_gauge(similarity, method, processing_time)
-                        st.plotly_chart(gauge_fig, use_container_width=True)
-                    
-                    with col3:
-                        st.metric("Confidence", f"{similarity*100:.1f}%")
-                        st.progress(similarity)
+                            bg_color = "linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)"
+                            status_icon = "🔵"
+                            status_text = "BERBEDA"
+                            status_desc = "Tidak terdeteksi kemiripan signifikan"
                         
-                        speed_class = "speed-fast" if processing_time < 0.1 else "speed-medium"
-                        speed_text = "Sangat Cepat" if processing_time < 0.1 else "Cepat"
-                        st.markdown(f'<span class="speed-indicator {speed_class}">{speed_text}</span>', unsafe_allow_html=True)
+                        st.markdown(f"""
+                        <div style='background: {bg_color}; padding: 2.5rem; border-radius: 20px; 
+                                    text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.3);'>
+                            <div style='font-size: 4rem; margin-bottom: 0.5rem;'>{status_icon}</div>
+                            <div style='color: white; font-size: 3.5rem; font-weight: 800; margin-bottom: 0.5rem;'>
+                                {similarity*100:.1f}%
+                            </div>
+                            <div style='color: rgba(255,255,255,0.9); font-size: 1.2rem; font-weight: 600; 
+                                        letter-spacing: 2px; margin-bottom: 0.5rem;'>
+                                {status_text}
+                            </div>
+                            <div style='color: rgba(255,255,255,0.8); font-size: 0.95rem;'>
+                                {status_desc}
+                            </div>
+                        </div>
+                        """, unsafe_allow_html=True)
+                    
+                    st.markdown("<br>", unsafe_allow_html=True)
+                    
+                    # Performance metrics with modern cards
+                    perf_cols = st.columns(3)
+                    
+                    with perf_cols[0]:
+                        st.markdown(f"""
+                        <div style='background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+                                    padding: 1.5rem; border-radius: 15px; border-left: 4px solid #667eea;'>
+                            <div style='color: #667eea; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.5rem;'>
+                                📏 SIMILARITY SCORE
+                            </div>
+                            <div style='font-size: 2rem; font-weight: 800; color: #2d3748;'>
+                                {similarity:.4f}
+                            </div>
+                        </div>
+                        """, unsafe_allow_html=True)
+                    
+                    with perf_cols[1]:
+                        st.markdown(f"""
+                        <div style='background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+                                    padding: 1.5rem; border-radius: 15px; border-left: 4px solid #764ba2;'>
+                            <div style='color: #764ba2; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.5rem;'>
+                                ⚡ PROCESSING TIME
+                            </div>
+                            <div style='font-size: 2rem; font-weight: 800; color: #2d3748;'>
+                                {processing_time:.3f}s
+                            </div>
+                        </div>
+                        """, unsafe_allow_html=True)
+                    
+                    with perf_cols[2]:
+                        model_status = "Trained" if result.get('weights_loaded') else "Untrained"
+                        st.markdown(f"""
+                        <div style='background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+                                    padding: 1.5rem; border-radius: 15px; border-left: 4px solid #667eea;'>
+                            <div style='color: #667eea; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.5rem;'>
+                                🤖 MODEL STATUS
+                            </div>
+                            <div style='font-size: 2rem; font-weight: 800; color: #2d3748;'>
+                                {model_status}
+                            </div>
+                        </div>
+                        """, unsafe_allow_html=True)
+                    
+                    st.markdown("<br>", unsafe_allow_html=True)
+                    
+                    # Gauge visualization
+                    gauge_fig = create_similarity_gauge(similarity, method, processing_time)
+                    st.plotly_chart(gauge_fig, use_container_width=True)
                     
                     # Text statistics
                     st.markdown("## 📈 Text Statistics")
@@ -875,37 +934,209 @@ elif analysis_type == "📁 Document Similarity":
                     top_evidence = result["top_evidence"]
                     shape = result["shape"]
 
-                    st.markdown("## 🎯 Hasil Perbandingan Dokumen (BERTScore-like F1)")
-                    c1, c2, c3, c4 = st.columns(4)
-                    with c1: st.metric("Doc Similarity (F1)", f"{doc_score:.4f}")
-                    with c2: st.metric("Percentage", f"{doc_score*100:.2f}%")
-                    with c3: st.metric("Pairs (m×n)", f"{shape['m']} × {shape['n']}")
-                    with c4: st.metric("Processing Time", f"{processing_time:.3f}s")
+                    # Modern Results Display for Document
+                    st.markdown("---")
+                    st.markdown("""
+                    <div style='text-align: center; padding: 1rem; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+                                border-radius: 15px; margin-bottom: 2rem;'>
+                        <h2 style='color: white; margin: 0;'>🎯 Hasil Analisis Dokumen</h2>
+                        <p style='color: rgba(255,255,255,0.9); margin: 0.5rem 0 0 0; font-size: 0.9rem;'>BERTScore-like F1 Analysis</p>
+                    </div>
+                    """, unsafe_allow_html=True)
+                    
+                    # Main Score Card
+                    col_space1, col_main, col_space2 = st.columns([1, 2, 1])
+                    with col_main:
+                        if doc_score >= 0.8:
+                            bg_color = "linear-gradient(135deg, #f093fb 0%, #f5576c 100%)"
+                            status_icon = "🚨"
+                            status_text = "PLAGIARISME TERDETEKSI"
+                            status_desc = "Kemiripan sangat tinggi - potensi plagiarisme"
+                        elif doc_score >= 0.6:
+                            bg_color = "linear-gradient(135deg, #ffeaa7 0%, #fdcb6e 100%)"
+                            status_icon = "⚠️"
+                            status_text = "PERLU DITINJAU"
+                            status_desc = "Kemiripan cukup tinggi - perlu verifikasi"
+                        else:
+                            bg_color = "linear-gradient(135deg, #11998e 0%, #38ef7d 100%)"
+                            status_icon = "✅"
+                            status_text = "DOKUMEN UNIK"
+                            status_desc = "Tidak terdeteksi plagiarisme signifikan"
+                        
+                        st.markdown(f"""
+                        <div style='background: {bg_color}; padding: 2.5rem; border-radius: 20px; 
+                                    text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.3);'>
+                            <div style='font-size: 4rem; margin-bottom: 0.5rem;'>{status_icon}</div>
+                            <div style='color: white; font-size: 3.5rem; font-weight: 800; margin-bottom: 0.5rem;'>
+                                {doc_score*100:.1f}%
+                            </div>
+                            <div style='color: rgba(255,255,255,0.9); font-size: 1.2rem; font-weight: 600; 
+                                        letter-spacing: 2px; margin-bottom: 0.5rem;'>
+                                {status_text}
+                            </div>
+                            <div style='color: rgba(255,255,255,0.8); font-size: 0.95rem;'>
+                                {status_desc}
+                            </div>
+                        </div>
+                        """, unsafe_allow_html=True)
+                    
+                    st.markdown("<br>", unsafe_allow_html=True)
+                    
+                    # Performance metrics with modern cards
+                    perf_cols = st.columns(3)
+                    
+                    with perf_cols[0]:
+                        st.markdown(f"""
+                        <div style='background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+                                    padding: 1.5rem; border-radius: 15px; border-left: 4px solid #667eea;'>
+                            <div style='color: #667eea; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.5rem;'>
+                                📊 F1 SCORE
+                            </div>
+                            <div style='font-size: 2rem; font-weight: 800; color: #2d3748;'>
+                                {doc_score:.4f}
+                            </div>
+                        </div>
+                        """, unsafe_allow_html=True)
+                    
+                    with perf_cols[1]:
+                        st.markdown(f"""
+                        <div style='background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+                                    padding: 1.5rem; border-radius: 15px; border-left: 4px solid #764ba2;'>
+                            <div style='color: #764ba2; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.5rem;'>
+                                📏 WINDOW PAIRS
+                            </div>
+                            <div style='font-size: 2rem; font-weight: 800; color: #2d3748;'>
+                                {shape['m']} × {shape['n']}
+                            </div>
+                        </div>
+                        """, unsafe_allow_html=True)
+                    
+                    with perf_cols[2]:
+                        st.markdown(f"""
+                        <div style='background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+                                    padding: 1.5rem; border-radius: 15px; border-left: 4px solid #667eea;'>
+                            <div style='color: #667eea; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.5rem;'>
+                                ⚡ PROCESSING TIME
+                            </div>
+                            <div style='font-size: 2rem; font-weight: 800; color: #2d3748;'>
+                                {processing_time:.3f}s
+                            </div>
+                        </div>
+                        """, unsafe_allow_html=True)
+                    
+                    st.markdown("<br>", unsafe_allow_html=True)
 
                     # Gauge pakai doc_score
                     gauge_fig = create_similarity_gauge(doc_score, "Sliding Window + BERTScore", processing_time)
                     st.plotly_chart(gauge_fig, use_container_width=True)
 
-                    # Detail P/R/F1
-                    st.markdown("### 📌 Precision / Recall / F1")
+                    # Detail P/R/F1 with modern cards
+                    st.markdown("""
+                    <div style='background: linear-gradient(90deg, #667eea 0%, #764ba2 100%); 
+                                padding: 0.75rem; border-radius: 10px; margin: 1.5rem 0;'>
+                        <h3 style='color: white; margin: 0; font-size: 1.1rem;'>📌 Precision / Recall / F1 Metrics</h3>
+                    </div>
+                    """, unsafe_allow_html=True)
+                    
                     if detail.get("symmetric", False):
                         a2b, b2a = detail["AtoB"], detail["BtoA"]
-                        st.write(f"**A→B**  P={a2b['P']:.3f} · R={a2b['R']:.3f} · F1={a2b['F1']:.3f}")
-                        st.write(f"**B→A**  P={b2a['P']:.3f} · R={b2a['R']:.3f} · F1={b2a['F1']:.3f}")
+                        metric_cols = st.columns(2)
+                        
+                        with metric_cols[0]:
+                            st.markdown(f"""
+                            <div style='background: rgba(102, 126, 234, 0.05); padding: 1.5rem; border-radius: 12px; border: 2px solid #667eea;'>
+                                <div style='color: #667eea; font-weight: 600; margin-bottom: 1rem; font-size: 1.1rem;'>📄 Dokumen A → B</div>
+                                <div style='display: flex; justify-content: space-between; margin-bottom: 0.5rem;'>
+                                    <span style='color: #4a5568;'>Precision:</span>
+                                    <span style='font-weight: 700; color: #2d3748;'>{a2b['P']:.3f}</span>
+                                </div>
+                                <div style='display: flex; justify-content: space-between; margin-bottom: 0.5rem;'>
+                                    <span style='color: #4a5568;'>Recall:</span>
+                                    <span style='font-weight: 700; color: #2d3748;'>{a2b['R']:.3f}</span>
+                                </div>
+                                <div style='display: flex; justify-content: space-between; padding-top: 0.5rem; border-top: 2px solid #667eea;'>
+                                    <span style='color: #667eea; font-weight: 600;'>F1 Score:</span>
+                                    <span style='font-weight: 800; color: #667eea; font-size: 1.3rem;'>{a2b['F1']:.3f}</span>
+                                </div>
+                            </div>
+                            """, unsafe_allow_html=True)
+                        
+                        with metric_cols[1]:
+                            st.markdown(f"""
+                            <div style='background: rgba(118, 75, 162, 0.05); padding: 1.5rem; border-radius: 12px; border: 2px solid #764ba2;'>
+                                <div style='color: #764ba2; font-weight: 600; margin-bottom: 1rem; font-size: 1.1rem;'>📄 Dokumen B → A</div>
+                                <div style='display: flex; justify-content: space-between; margin-bottom: 0.5rem;'>
+                                    <span style='color: #4a5568;'>Precision:</span>
+                                    <span style='font-weight: 700; color: #2d3748;'>{b2a['P']:.3f}</span>
+                                </div>
+                                <div style='display: flex; justify-content: space-between; margin-bottom: 0.5rem;'>
+                                    <span style='color: #4a5568;'>Recall:</span>
+                                    <span style='font-weight: 700; color: #2d3748;'>{b2a['R']:.3f}</span>
+                                </div>
+                                <div style='display: flex; justify-content: space-between; padding-top: 0.5rem; border-top: 2px solid #764ba2;'>
+                                    <span style='color: #764ba2; font-weight: 600;'>F1 Score:</span>
+                                    <span style='font-weight: 800; color: #764ba2; font-size: 1.3rem;'>{b2a['F1']:.3f}</span>
+                                </div>
+                            </div>
+                            """, unsafe_allow_html=True)
                     else:
                         a2b = detail["AtoB"]
-                        st.write(f"**A→B**  P={a2b['P']:.3f} · R={a2b['R']:.3f} · F1={a2b['F1']:.3f}")
+                        st.markdown(f"""
+                        <div style='background: rgba(102, 126, 234, 0.05); padding: 1.5rem; border-radius: 12px; border: 2px solid #667eea;'>
+                            <div style='color: #667eea; font-weight: 600; margin-bottom: 1rem; font-size: 1.1rem;'>📄 Dokumen A → B</div>
+                            <div style='display: flex; justify-content: space-between; margin-bottom: 0.5rem;'>
+                                <span style='color: #4a5568;'>Precision:</span>
+                                <span style='font-weight: 700; color: #2d3748;'>{a2b['P']:.3f}</span>
+                            </div>
+                            <div style='display: flex; justify-content: space-between; margin-bottom: 0.5rem;'>
+                                <span style='color: #4a5568;'>Recall:</span>
+                                <span style='font-weight: 700; color: #2d3748;'>{a2b['R']:.3f}</span>
+                            </div>
+                            <div style='display: flex; justify-content: space-between; padding-top: 0.5rem; border-top: 2px solid #667eea;'>
+                                <span style='color: #667eea; font-weight: 600;'>F1 Score:</span>
+                                <span style='font-weight: 800; color: #667eea; font-size: 1.3rem;'>{a2b['F1']:.3f}</span>
+                            </div>
+                        </div>
+                        """, unsafe_allow_html=True)
 
-                    # Top evidence windows
-                    st.markdown("### 🔎 Top Evidence Windows")
+                    # Top evidence windows with modern design
+                    st.markdown("""
+                    <div style='background: linear-gradient(90deg, #667eea 0%, #764ba2 100%); 
+                                padding: 0.75rem; border-radius: 10px; margin: 1.5rem 0;'>
+                        <h3 style='color: white; margin: 0; font-size: 1.1rem;'>🔎 Top Evidence Windows</h3>
+                    </div>
+                    """, unsafe_allow_html=True)
+                    
                     if top_evidence:
                         for k, ev in enumerate(top_evidence, 1):
-                            st.markdown(f"**#{k} — score={ev['score']:.3f}**")
-                            st.write("**A:** " + ev["windowA"])
-                            st.write("**B:** " + ev["windowB"])
-                            st.markdown("---")
+                            score_color = "#f5576c" if ev['score'] >= 0.8 else "#fdcb6e" if ev['score'] >= 0.6 else "#38ef7d"
+                            st.markdown(f"""
+                            <div style='background: rgba(102, 126, 234, 0.03); padding: 1.25rem; border-radius: 12px; 
+                                        margin-bottom: 1rem; border-left: 5px solid {score_color};'>
+                                <div style='display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;'>
+                                    <span style='font-weight: 700; color: #2d3748; font-size: 1.1rem;'>Evidence #{k}</span>
+                                    <span style='background: {score_color}; color: white; padding: 0.25rem 0.75rem; 
+                                                border-radius: 20px; font-weight: 700; font-size: 0.9rem;'>
+                                        {ev['score']:.3f}
+                                    </span>
+                                </div>
+                                <div style='background: white; padding: 0.75rem; border-radius: 8px; margin-bottom: 0.5rem; 
+                                            border: 1px solid #e2e8f0;'>
+                                    <div style='color: #667eea; font-weight: 600; font-size: 0.85rem; margin-bottom: 0.25rem;'>
+                                        📄 Window A:
+                                    </div>
+                                    <div style='color: #2d3748; line-height: 1.6;'>{ev["windowA"]}</div>
+                                </div>
+                                <div style='background: white; padding: 0.75rem; border-radius: 8px; border: 1px solid #e2e8f0;'>
+                                    <div style='color: #764ba2; font-weight: 600; font-size: 0.85rem; margin-bottom: 0.25rem;'>
+                                        📄 Window B:
+                                    </div>
+                                    <div style='color: #2d3748; line-height: 1.6;'>{ev["windowB"]}</div>
+                                </div>
+                            </div>
+                            """, unsafe_allow_html=True)
                     else:
-                        st.info("Tidak ada evidence (kemungkinan dokumen sangat pendek).")
+                        st.info("ℹ️ Tidak ada evidence (kemungkinan dokumen sangat pendek).")
 
 # Footer & Additional Info
 st.markdown("---")
