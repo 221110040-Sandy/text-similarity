@@ -2,4 +2,4 @@
 hideTopBar = true
 
 [client]
-toolbarMode = "minimal" # or "off" to remove the running man completely
+toolbarMode = "off"

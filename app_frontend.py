@@ -101,6 +101,15 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
+hide_streamlit_style = """
+<style>
+#MainMenu {visibility: hidden;}
+footer {visibility: hidden;}
+</style>
+
+"""
+st.markdown(hide_streamlit_style, unsafe_allow_html=True) 
+
 # API Configuration
 # API_BASE_URL = "http://localhost:8000"
 API_BASE_URL = "https://text-similarity-production.up.railway.app"
