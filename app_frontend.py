@@ -384,7 +384,7 @@ def create_performance_chart(results_history):
 st.markdown("""
 <div class="main-header">
     <h1>🔍 Advanced Text Similarity Analyzer</h1>
-    <p>FastAPI + Streamlit Architecture | Lightning Fast Neural Models!</p>
+    <p>Lightning Fast Neural Models!</p>
 </div>
 """, unsafe_allow_html=True)
 
@@ -422,43 +422,6 @@ analysis_type = st.sidebar.radio(
 
 st.sidebar.markdown("## 🧠 Neural Model")
 st.sidebar.markdown("**Your Trained Model:** MiniLM + BiLSTM + Attention")
-
-# API Status in Sidebar
-st.sidebar.markdown("---")
-st.sidebar.markdown("## 🌐 API Status")
-
-if api_connected:
-    st.sidebar.success("✅ FastAPI Backend Online")
-    if api_health.get("model_info"):
-        model_info = api_health["model_info"]
-        st.sidebar.info(f"""
-        **Model Info:**
-        - Weights: {'✅ Loaded' if model_info['weights_loaded'] else '❌ Not Found'}
-        - Max Length: {model_info['max_len']} tokens
-        - Load Time: {model_info['load_time']:.1f}s
-        """)
-else:
-    st.sidebar.error("❌ FastAPI Backend Offline")
-    st.sidebar.markdown("""
-    **To start backend:**
-    ```bash
-    python model_api.py
-    ```
-    """)
-
-st.sidebar.markdown("---")
-st.sidebar.info("""
-**Architecture:**
-- **Backend**: FastAPI (Port 8000)
-- **Frontend**: Streamlit (Port 8501)
-- **Model**: Loaded once in backend
-- **Performance**: ~10x faster than monolithic
-
-**Benefits:**
-- Instant UI (no model loading wait)
-- Scalable backend
-- API can serve multiple clients
-""")
 
 # Performance tracking
 if 'performance_history' not in st.session_state:
@@ -1161,95 +1124,3 @@ if st.session_state.performance_history:
                 st.metric("Average Time", f"{avg_time:.3f}s")
             with summary_cols[1]:
                 st.metric("Average Similarity", f"{avg_similarity:.3f}")
-
-# Architecture info
-with st.expander("🏗️ Architecture & Benefits"):
-    arch_cols = st.columns(2)
-    
-    with arch_cols[0]:
-        st.markdown("""
-        **FastAPI + Streamlit Architecture:**
-        - **Separation of Concerns**: Model logic separate from UI
-        - **Performance**: Model loaded once in backend
-        - **Scalability**: API can serve multiple clients
-        - **Maintainability**: Independent development & deployment
-        - **Real-time**: Instant UI responses
-        """)
-    
-    with arch_cols[1]:
-        st.markdown("""
-        **Performance Comparison:**
-        - **Monolithic Streamlit**: 30-60s initial load
-        - **FastAPI + Streamlit**: <1s after backend startup
-        - **Concurrent Users**: Better handling
-        - **Memory Usage**: More efficient
-        - **Development**: Faster iteration
-        """)
-
-# API Documentation
-with st.expander("📖 API Documentation"):
-    st.markdown("""
-    **FastAPI Endpoints:**
-    - `GET /health` - Check API and model status
-    - `POST /predict` - Text similarity prediction
-    - `GET /docs` - Interactive API documentation
-    
-    **Request Format:**
-    ```json
-    {
-        "text1": "First text to compare",
-        "text2": "Second text to compare"
-    }
-    ```
-    
-    **Response Format:**
-    ```json
-    {
-        "similarity": 0.85,
-        "processing_time": 0.123,
-        "method": "Neural (MiniLM + BiLSTM + Attention)",
-        "weights_loaded": true
-    }
-    ```
-    """)
-
-# Quick Start Guide
-with st.expander("🚀 Quick Start Guide"):
-    st.markdown("""
-    **1. Start FastAPI Backend:**
-    ```bash
-    python model_api.py
-    ```
-    
-    **2. Start Streamlit Frontend:**
-    ```bash
-    streamlit run app_frontend.py
-    ```
-    
-    **3. Access Applications:**
-    - **Streamlit UI**: http://localhost:8501
-    - **FastAPI Docs**: http://localhost:8000/docs
-    - **API Health**: http://localhost:8000/health
-    
-    **4. File Requirements:**
-    ```
-    artifacts/
-    ├── S-001_best_sts.weights.h5     # Your trained weights
-    ├── tokenizer/                     # Tokenizer directory
-    └── minilm-tf/                     # BERT model directory
-    ```
-    
-    **5. Dependencies:**
-    ```bash
-    pip install fastapi uvicorn streamlit pandas plotly requests
-    pip install tensorflow tf-keras transformers scikit-learn
-    ```
-    """)
-
-st.markdown("""
-<div style='text-align: center; color: #666; padding: 1rem;'>
-    <p>🚀 <strong>FastAPI + Streamlit Architecture</strong> | Lightning Fast & Scalable!</p>
-    <p>🧠 Neural Model: Loaded Once | 📊 UI: Always Responsive | ⚡ Performance: 10x Faster</p>
-    <p>🎯 Training ID: <strong>S-001</strong> | 🏗️ Microservices Architecture</p>
-</div>
-""", unsafe_allow_html=True)
