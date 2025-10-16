@@ -90,8 +90,8 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # API Configuration
-API_BASE_URL = "http://localhost:8000"
-
+# API_BASE_URL = "http://localhost:8000"
+API_BASE_URL = "https://text-similarity-production.up.railway.app"
 # Utility functions
 def count_words(text):
     return len(str(text).split())
