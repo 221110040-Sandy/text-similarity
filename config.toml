@@ -1,8 +1,0 @@
-[ui]
-hideTopBar = true
-
-[client]
-toolbarMode = "off"
-
-[theme]
-base = "dark"

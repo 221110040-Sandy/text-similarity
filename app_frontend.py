@@ -6,6 +6,7 @@ import requests
 import time
 import re
 from typing import Dict, Optional
+from utils.auth import initialize_auth_state, is_logged_in
 
 # PDF processing imports
 try:
@@ -89,6 +90,23 @@ st.markdown("""
     
     .api-connected { background: #d4edda; border-left-color: #28a745; color: #155724; }
     .api-disconnected { background: #f8d7da; border-left-color: #dc3545; color: #721c24; }
+    
+    /* Admin Button Styles */
+    .stButton > button {
+        transition: all 0.3s ease;
+    }
+    
+    .stButton > button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 15px rgba(102, 126, 234, 0.4);
+    }
+    
+    /* Admin Panel Button Container */
+    div[data-testid="column"]:last-child {
+        display: flex;
+        align-items: flex-start;
+        justify-content: center;
+    }
             
     [data-testid="stHeading"] a {
         display: none !important;
@@ -405,6 +423,9 @@ def create_performance_chart(results_history):
     
     return fig
 
+# Initialize authentication state
+initialize_auth_state()
+
 # Header
 st.markdown("""
 <div class="main-header">
@@ -444,6 +465,16 @@ st.sidebar.markdown(
     """,
     unsafe_allow_html=True
 )
+
+# Admin button at bottom of sidebar
+st.sidebar.markdown("---")
+with st.sidebar:
+    if is_logged_in():
+        if st.button("Admin Panel", key="admin_sidebar_logged", use_container_width=True, type="primary"):
+            st.switch_page("pages/admin_panel.py")
+    else:
+        if st.button("Login Admin", key="admin_sidebar_guest", use_container_width=True):
+            st.switch_page("pages/admin_panel.py")
 
 
 # Performance tracking
