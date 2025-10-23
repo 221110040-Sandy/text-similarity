@@ -45,7 +45,7 @@ require_auth()
 st.markdown("""
 <div class='admin-header'>
     <h1>Admin Dashboard</h1>
-    <p style='margin: 0; opacity: 0.9;'>Panel kontrol untuk mengelola sistem</p>
+    <p style='margin: 0; opacity: 0.9;'>Panel kontrol untuk training data</p>
 </div>
 """, unsafe_allow_html=True)
 
@@ -63,43 +63,67 @@ with col2:
 
 st.markdown("---")
 
-st.markdown("### Upload CSV File")
+st.markdown("### Upload CSV Files (Train / Val / Test)")
 
-uploaded_file = st.file_uploader(
-    "Pilih file CSV untuk diupload", 
-    type=['csv'],
-)
+col_train, col_val, col_test = st.columns(3)
 
-if uploaded_file is not None:
-    try:
-        df = pd.read_csv(uploaded_file)
-        
-        st.success(f"File berhasil diupload: {uploaded_file.name}")
-        
-        st.markdown("#### Preview Data")
-        st.dataframe(df.head(10), use_container_width=True)
-        
-        col1, col2, col3 = st.columns(3)
-        with col1:
-            st.metric("Total Rows", len(df))
-        with col2:
-            st.metric("Total Columns", len(df.columns))
-        with col3:
-            st.metric("File Size", f"{uploaded_file.size / 1024:.2f} KB")
-        
-        st.markdown("---")
-        
-        if st.button("Submit Data", type="primary", use_container_width=False):
-            with st.spinner("Processing data..."):
+train_file = None
+val_file = None
+test_file = None
+
+with col_train:
+    st.markdown("**Train CSV**")
+    train_file = st.file_uploader("Upload train CSV", type=['csv'], key='train_file')
+    if train_file:
+        try:
+            df_train = pd.read_csv(train_file)
+            st.success(f"Train file loaded: {getattr(train_file, 'name', 'train')}")
+            st.dataframe(df_train.head(5), use_container_width=True)
+            st.metric("Rows", len(df_train))
+            st.metric("Columns", len(df_train.columns))
+        except Exception as e:
+            st.error(f"Error membaca train file: {str(e)}")
+
+with col_val:
+    st.markdown("**Validation CSV**")
+    val_file = st.file_uploader("Upload val CSV", type=['csv'], key='val_file')
+    if val_file:
+        try:
+            df_val = pd.read_csv(val_file)
+            st.success(f"Val file loaded: {getattr(val_file, 'name', 'val')}")
+            st.dataframe(df_val.head(5), use_container_width=True)
+            st.metric("Rows", len(df_val))
+            st.metric("Columns", len(df_val.columns))
+        except Exception as e:
+            st.error(f"Error membaca val file: {str(e)}")
+
+with col_test:
+    st.markdown("**Test CSV**")
+    test_file = st.file_uploader("Upload test CSV", type=['csv'], key='test_file')
+    if test_file:
+        try:
+            df_test = pd.read_csv(test_file)
+            st.success(f"Test file loaded: {getattr(test_file, 'name', 'test')}")
+            st.dataframe(df_test.head(5), use_container_width=True)
+            st.metric("Rows", len(df_test))
+            st.metric("Columns", len(df_test.columns))
+        except Exception as e:
+            st.error(f"Error membaca test file: {str(e)}")
+
+st.markdown("---")
+
+start_col1 = st.columns(1)[0]
+with start_col1:
+    if st.button("Mulai Training", type="primary", use_container_width=True):
+        # It's okay if training doesn't actually run; show dummy behavior
+        if not train_file and not val_file and not test_file:
+            st.warning("Upload semua file untuk mulai training.")
+        else:
+            with st.spinner("Memulai training (dummy)..."):
                 import time
                 time.sleep(2)
-                
-                st.success("Data berhasil disubmit ke API!")
-                st.info("API Response: Data processed successfully (dummy response)")
-                
-    except Exception as e:
-        st.error(f"Error membaca file: {str(e)}")
-else:
-    st.info("Silakan upload file CSV untuk memulai")
+            st.success("Training started (dummy).")
+            uploaded_names = [getattr(f, 'name', '') for f in [train_file, val_file, test_file] if f]
+            st.info(f"Uploaded files: {', '.join(uploaded_names)}")
 
 
