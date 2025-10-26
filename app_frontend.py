@@ -111,13 +111,21 @@ st.markdown("""
     [data-testid="stHeading"] a {
         display: none !important;
     }
-            
+
+    [data-testid="collapsedControl"] {
+        display: none
+    }       
+
     h1 a, h2 a, h3 a, h4 a, h5 a, h6 a {
         display: none !important;
     }
             
-    button[title="View fullscreen"]{
+    button[title="View fullscreen"] {
         visibility: hidden;
+    }
+            
+    .st-emotion-cache-pkm19r {
+        visibility: visible !important;    
     }
 </style>
 """, unsafe_allow_html=True)
@@ -125,11 +133,12 @@ st.markdown("""
 hide_streamlit_style = """
 <style>
 #MainMenu {visibility: hidden;}
-footer {visibility: hidden;}
 header {visibility: hidden;}
+footer {visibility: hidden;}
 </style>
 
 """
+
 st.markdown(hide_streamlit_style, unsafe_allow_html=True) 
 
 # API Configuration
