@@ -142,8 +142,8 @@ footer {visibility: hidden;}
 st.markdown(hide_streamlit_style, unsafe_allow_html=True) 
 
 # API Configuration
-# API_BASE_URL = "http://localhost:8000"
-API_BASE_URL = "https://text-similarity-production.up.railway.app"
+API_BASE_URL = "http://localhost:8000"
+# API_BASE_URL = "https://text-similarity-production.up.railway.app"
 # Utility functions
 def count_words(text):
     return len(str(text).split())
@@ -302,18 +302,25 @@ def predict_similarity_api(text1: str, text2: str):
     """Call API for similarity prediction menggunakan Neural model"""
     try:
         payload = {
-            "text1": text1,
-            "text2": text2
+            "question1": text1,
+            "question2": text2
         }
-        
+
         response = requests.post(
             f"{API_BASE_URL}/predict",
             json=payload,
-            timeout=30  # 30 second timeout
+            timeout=30
         )
-        
+
         if response.status_code == 200:
-            return response.json()
+            resp = response.json()
+            # normalize backend response to frontend expected keys
+            normalized = {
+                "similarity": resp.get("probability"),
+                "processing_time": resp.get("processing_time"),
+                "method": resp.get("prediction", "")
+            }
+            return normalized
         else:
             error_detail = response.json().get("detail", "Unknown error")
             return {"error": f"API Error: {error_detail}"}
