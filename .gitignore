@@ -7,3 +7,5 @@ __MACOSX/
 *.log
 
 .venv312/
+
+artifacts/final_model.keras
